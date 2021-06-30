@@ -62,6 +62,7 @@ class DemoApplicationTests11 {
     @Test
     public void test3(){
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        //延迟2秒调用
         scheduledExecutorService.schedule(()->{
             doHeartTest(scheduledExecutorService);
         }, 2, TimeUnit.SECONDS);
@@ -73,8 +74,14 @@ class DemoApplicationTests11 {
         }
     }
 
+    /**
+     * 心跳测试
+     * @param scheduledExecutorService
+     */
     private void doHeartTest(ScheduledExecutorService scheduledExecutorService){
+        //测试心跳
         logger.info("心跳测试==========");
+        //放入一个任务，下一个2秒再做一次测试
         scheduledExecutorService.schedule(()->{
             doHeartTest(scheduledExecutorService);
         }, 2, TimeUnit.SECONDS);
