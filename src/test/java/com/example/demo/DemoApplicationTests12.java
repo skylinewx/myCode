@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -80,6 +83,27 @@ class DemoApplicationTests12 {
         TimeUnit.SECONDS.sleep(1);
         FLAG = true;
         t1.join();
+    }
+
+    private volatile static long value = 0l;
+    @Test
+    public void test3() throws InterruptedException {
+        assert 3==3;
+        int count = 10;
+        List<Thread> threads = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            Thread thread = new Thread(() -> {
+                for (int j = 0; j < 100; j++) {
+                    value++;
+                    logger.info("value:[{}]",value);
+                }
+            }, "t" + i);
+            threads.add(thread);
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
     }
 
 
