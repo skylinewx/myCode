@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.juc;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -6,9 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @SpringBootTest
 class DemoApplicationTests10 {

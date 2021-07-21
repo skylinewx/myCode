@@ -1,7 +1,4 @@
-package com.example.demo;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.example.juc;
 
 import java.util.concurrent.CountDownLatch;
 

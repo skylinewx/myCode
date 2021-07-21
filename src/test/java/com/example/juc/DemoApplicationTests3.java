@@ -1,25 +1,28 @@
-package com.example.demo;
+package com.example.juc;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @SpringBootTest
-class DemoApplicationTests2 {
+class DemoApplicationTests3 {
 
 	/**
-	 * 3个线程依次打印 abc abc 打印4次
+     * 3个线程依次打印 abc abc 打印4次
 	 * @throws InterruptedException
 	 */
 	@Test
 	void Test1() throws InterruptedException {
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 		logger.info("ready");
+		ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+		lock.readLock().lock();
 		Printer printer = new Printer();
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 		Thread t1 = new Thread(() -> {
@@ -54,21 +57,25 @@ class DemoApplicationTests2 {
 
 	static class Printer{
 		private int current = 1;
-		private final Object lockObj = new Object();
+		private final ReentrantLock lock = new ReentrantLock();
+		private final Condition condition = lock.newCondition();
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 		public void print(String str,int signal,int nextSignal){
 			for (int i = 0; i < 4; i++) {
-				synchronized (lockObj){
+				try {
+					lock.lock();
 					while (current!=signal){
 						try {
-							lockObj.wait();
+							condition.await();
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
 					}
 					logger.info(str);
 					current = nextSignal;
-					lockObj.notifyAll();
+					condition.signalAll();
+				}finally {
+					lock.unlock();
 				}
 			}
 		}

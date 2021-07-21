@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.juc;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @SpringBootTest
 class DemoApplicationTests7 {
