@@ -5,6 +5,9 @@ import com.example.spring.customization.MyCustomizationBean1;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+/**
+ * 学习如何通过xml加载spring配置文件，以及BeanDefinitionRegisterPostProcessor
+ */
 public class SpringTests1 {
 
     /**
