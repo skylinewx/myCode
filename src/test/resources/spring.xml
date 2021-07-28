@@ -13,4 +13,6 @@
     <bean id="student" class="com.example.spring.beans.Student"/>
     <!--配置扫描com.example.spring.beans下的所有bean-->
     <context:component-scan base-package="com.example.spring.beans"/>
+    <!--配置扫描com.example.spring.listeners下的所有bean-->
+    <context:component-scan base-package="com.example.spring.listenters"/>
 </beans>
