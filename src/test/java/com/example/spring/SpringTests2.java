@@ -1,5 +1,6 @@
 package com.example.spring;
 
+import com.example.spring.events.MyTestEvent;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -9,11 +10,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class SpringTests2 {
 
     /**
-     * 通过classPath读取xml配置文件获取bean
+     * 学习事件处理机制
      */
     @Test
     public void test1(){
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
-
+        applicationContext.publishEvent(new MyTestEvent("MyTestEvent"));
     }
 }

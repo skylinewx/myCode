@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component("MyContextRefreshedEventListener")
 public class ContextRefreshedEventListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    Logger logger = LoggerFactory.getLogger(ContextRefreshedEventListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(ContextRefreshedEventListener.class);
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         logger.info("**********ContextRefreshedEvent************");

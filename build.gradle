@@ -18,6 +18,8 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	//邮件
+	implementation 'com.sun.mail:javax.mail:1.6.2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
