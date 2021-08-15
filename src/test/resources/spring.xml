@@ -15,4 +15,9 @@
     <context:component-scan base-package="com.example.spring.beans"/>
     <!--配置扫描com.example.spring.listeners下的所有bean-->
     <context:component-scan base-package="com.example.spring.listenters"/>
+
+    <bean id="testObj1Factory" class="com.example.spring.beans2.TestObj1Factory"/>
+    <bean id="testObj1" factory-bean="testObj1Factory" factory-method="createTestObj"/>
+
+    <bean id="testObj2" class="com.example.spring.beans2.TestObj2" factory-method="createInstance"/>
 </beans>
