@@ -1,4 +1,4 @@
-package com.example.spring.beans;
+package com.example.spring.components;
 
 import com.example.spring.customization.MyCustomizationBean1;
 import org.springframework.beans.BeansException;
