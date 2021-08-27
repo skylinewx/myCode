@@ -1,7 +1,7 @@
 package com.example.spring;
 
 import com.example.spring.beans.Bean2;
-import com.example.spring.beans.Bean3;
+import com.example.spring.beans2.Bean3;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -28,6 +28,6 @@ public class SpringTests4 {
     public void test2(){
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
         Bean3 bean = applicationContext.getBean(Bean3.class);
-        bean.hello();
+//        bean.hello();
     }
 }
