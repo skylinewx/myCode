@@ -6,17 +6,13 @@ import org.springframework.stereotype.Component;
 /**
  * 循环依赖bean
  */
-@Component
-public class CycleRefA {
+@Component("cycleRefE")
+public class CycleRefE {
 
-    /**
-     * A中有B
-     */
     @Autowired
-    private CycleRefB cycleRefB;
-
+    private CycleRefF cycleRefF;
 
     public void hello() {
-        System.out.println("A:hello:" + cycleRefB);
+        System.out.println("E:hello:" + cycleRefF);
     }
 }

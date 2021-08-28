@@ -1,5 +1,5 @@
 plugins {
-	id 'org.springframework.boot' version '2.4.6'  apply false
+    id 'org.springframework.boot' version '2.4.6'
 }
 
 apply plugin: 'org.springframework.boot'
@@ -8,23 +8,25 @@ apply plugin: 'java-library'
 apply plugin: 'application'
 apply plugin: 'io.spring.dependency-management'
 
-group = 'com.example'	
+group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 repositories {
-	maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
-	mavenCentral()
+    maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	//邮件
-	implementation 'com.sun.mail:javax.mail:1.6.2'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'junit:junit:4.12'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+//    implementation 'cglib:cglib:3.3.0'
+    //邮件
+    implementation 'com.sun.mail:javax.mail:1.6.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'junit:junit:4.12'
 }
 
 test {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

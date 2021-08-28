@@ -9,10 +9,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class CycleRefB {
 
+    /**
+     * B中有A
+     */
     @Autowired
     private CycleRefA cycleRefA;
 
-    public void hello(){
-        System.out.println("B:hello:"+cycleRefA);
+    public void hello() {
+        System.out.println("B:hello:" + cycleRefA);
     }
 }
