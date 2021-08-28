@@ -56,7 +56,7 @@ public class CGLIBProxy {
             return "Student{" +
                     "age=" + age +
                     ", name='" + name + '\'' +
-                    '}';
+                    '}' + "\r\n" + super.toString();
         }
     }
 }
