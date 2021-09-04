@@ -3,8 +3,11 @@ package com.example.spring;
 import com.example.spring.beans3.MySkyComponent1;
 import com.example.spring.beans3.MySkyComponent2;
 import com.example.spring.beans3.MySkyComponent3;
+import com.example.spring.components.SimpleClassScan;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.Set;
 
 /**
  * bean的循环依赖
@@ -23,7 +26,13 @@ public class SpringTests6 {
         System.out.println("component1.getMySkyComponent2:" + component1.getMySkyComponent2());
         System.out.println("component2.getMySkyComponent3:" + component2.getMySkyComponent3());
         System.out.println("component3.getMySkyComponent1:" + component3.getMySkyComponent1());
+    }
 
+    @Test
+    public void test2() {
+        SimpleClassScan simpleClassScan = new SimpleClassScan();
+        Set<Class<?>> scan = simpleClassScan.scan("com.example");
+        System.out.println(scan);
     }
 
 }
