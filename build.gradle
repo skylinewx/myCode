@@ -25,6 +25,7 @@ dependencies {
     implementation 'com.sun.mail:javax.mail:1.6.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
+//    annotationProcessor "org.springframework:spring-context-indexer"
 }
 
 test {
