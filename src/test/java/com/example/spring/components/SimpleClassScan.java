@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+/**
+ * 一个简单的class查找工具，但是因为扫描不到jar包中的内容，所以很鸡肋
+ */
 public class SimpleClassScan {
 
     public Set<Class<?>> scan(String... basePackages) {
