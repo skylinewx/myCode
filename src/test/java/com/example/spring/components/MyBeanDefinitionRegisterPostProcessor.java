@@ -30,9 +30,6 @@ public class MyBeanDefinitionRegisterPostProcessor implements BeanDefinitionRegi
         ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry, false);
         scanner.addIncludeFilter(new AnnotationTypeFilter(SkylineComponent.class));
         scanner.scan("com.example.spring.beans3");
-
-        ClassPathBeanDefinitionScanner scanner2 = new ClassPathBeanDefinitionScanner(registry, false);
-        scanner2.scan("org.slf4j");
     }
 
     @Override

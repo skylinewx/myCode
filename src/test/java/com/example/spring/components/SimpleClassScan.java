@@ -19,7 +19,9 @@ public class SimpleClassScan {
     public SimpleClassScan() {
         classSet = new HashSet<>();
         handlerMap = new HashMap<>();
+        //注册一个文件扫描器
         FileProtocolHandler fileProtocolHandler = new FileProtocolHandler();
+        //注册一个jar包扫描器
         JarProtocolHandler jarProtocolHandler = new JarProtocolHandler();
         handlerMap.put(fileProtocolHandler.handleProtocol(), fileProtocolHandler);
         handlerMap.put(jarProtocolHandler.handleProtocol(), jarProtocolHandler);
@@ -43,6 +45,7 @@ public class SimpleClassScan {
             while (resources.hasMoreElements()) {
                 URL url = resources.nextElement();
                 String protocol = url.getProtocol();
+                //根据url中protocol类型查找适用的解析器
                 ProtocolHandler protocolHandler = handlerMap.get(protocol);
                 if (protocolHandler == null) {
                     throw new RuntimeException("need support protocol [" + protocol + "]");
@@ -53,11 +56,15 @@ public class SimpleClassScan {
         return classSet;
     }
 
+    /**
+     * 将class添加到结果中
+     *
+     * @param classFullName 形如com.aa.bb.cc.Test.class的字符串
+     */
     private void addResult(String classFullName) {
         Class<?> aClass = null;
         try {
             aClass = Class.forName(classFullName.substring(0, classFullName.length() - 6));
-
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -66,6 +73,12 @@ public class SimpleClassScan {
         }
     }
 
+    /**
+     * 检查一个文件名是否是class文件名
+     *
+     * @param fileName 文件名
+     * @return
+     */
     private boolean checkIsNotClass(String fileName) {
         //只要class类型的文件
         boolean isClass = fileName.endsWith(".class");
@@ -99,6 +112,9 @@ public class SimpleClassScan {
         void handle(String basePackage, URL url);
     }
 
+    /**
+     * jar包解析器
+     */
     private class JarProtocolHandler implements ProtocolHandler {
 
         @Override
@@ -114,6 +130,7 @@ public class SimpleClassScan {
                 JarFile jarFile = conn.getJarFile();
                 Enumeration<JarEntry> entries = jarFile.entries();
                 while (entries.hasMoreElements()) {
+                    //遍历jar包中的所有项
                     JarEntry jarEntry = entries.nextElement();
                     String entryName = jarEntry.getName();
                     if (!entryName.startsWith(resourceName)) {
@@ -131,6 +148,9 @@ public class SimpleClassScan {
         }
     }
 
+    /**
+     * 文件解析器
+     */
     private class FileProtocolHandler implements ProtocolHandler {
 
         @Override
@@ -140,11 +160,16 @@ public class SimpleClassScan {
 
         @Override
         public void handle(String basePackage, URL url) {
-            //文件包类型
             File rootFile = new File(url.getFile());
             findClass(rootFile, File.separator + basePackage.replace('.', File.separatorChar) + File.separator);
         }
 
+        /**
+         * 递归的方式查找class文件
+         *
+         * @param rootFile    当前文件
+         * @param subFilePath 子路径
+         */
         private void findClass(File rootFile, String subFilePath) {
             if (rootFile == null) {
                 return;

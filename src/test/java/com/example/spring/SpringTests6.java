@@ -31,9 +31,19 @@ public class SpringTests6 {
     @Test
     public void test2() {
         SimpleClassScan simpleClassScan = new SimpleClassScan();
+        Set<Class<?>> scan = simpleClassScan.scan("com.example");
+        for (Class<?> clazz : scan) {
+            System.out.println(clazz);
+        }
+    }
+
+    @Test
+    public void test3() {
+        SimpleClassScan simpleClassScan = new SimpleClassScan();
         Set<Class<?>> scan = simpleClassScan.scan("org.slf4j");
-//        Set<Class<?>> scan = simpleClassScan.scan("com.example");
-        System.out.println(scan);
+        for (Class<?> clazz : scan) {
+            System.out.println(clazz);
+        }
     }
 
 }
