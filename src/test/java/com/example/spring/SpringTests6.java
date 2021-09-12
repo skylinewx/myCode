@@ -3,7 +3,7 @@ package com.example.spring;
 import com.example.spring.beans3.MySkyComponent1;
 import com.example.spring.beans3.MySkyComponent2;
 import com.example.spring.beans3.MySkyComponent3;
-import com.example.spring.components.SimpleClassScan;
+import com.example.spring.utils.SimpleClassScan;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 

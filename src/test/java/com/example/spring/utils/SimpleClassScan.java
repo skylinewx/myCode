@@ -1,4 +1,4 @@
-package com.example.spring.components;
+package com.example.spring.utils;
 
 import java.io.File;
 import java.io.IOException;
