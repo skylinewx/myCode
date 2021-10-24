@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class ConstructorInitTest1 {
 
     @Autowired
-    public ConstructorInitTest1(TestObj1 testObj1){
+    public ConstructorInitTest1(TestObj1 testObj1) {
         System.out.println(testObj1);
     }
 }

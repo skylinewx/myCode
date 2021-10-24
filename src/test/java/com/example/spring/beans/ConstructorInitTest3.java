@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
 public class ConstructorInitTest3 {
 
     @Autowired(required = false)
-    public ConstructorInitTest3(TestObj1 testObj1){
+    public ConstructorInitTest3(TestObj1 testObj1) {
         System.out.println("ConstructorInitTest3");
         System.out.println(testObj1);
     }
 
     @Autowired(required = false)
-    public ConstructorInitTest3(TestObj1 testObj1,TestObj2 testObj2){
+    public ConstructorInitTest3(TestObj1 testObj1, TestObj2 testObj2) {
         System.out.println("ConstructorInitTest3");
         System.out.println(testObj1);
         System.out.println(testObj2);

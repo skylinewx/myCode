@@ -63,7 +63,6 @@ public class AdLogin {
             if (null != ctx) {
                 try {
                     ctx.close();
-                    ctx = null;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

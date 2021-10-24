@@ -3,7 +3,6 @@ package com.example.spring.components;
 import com.example.spring.annotations.SkylineComponent;
 import com.example.spring.customization.MyCustomizationBean1;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -17,9 +16,9 @@ public class MyBeanDefinitionRegisterPostProcessor implements BeanDefinitionRegi
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         //从registry中获取名为student的bean的BeanDefinition
-        BeanDefinition student = registry.getBeanDefinition("student");
+//        BeanDefinition student = registry.getBeanDefinition("student");
         //获取student的propertyValues并添加age=20的属性
-        student.getPropertyValues().add("age", 20);
+//        student.getPropertyValues().add("age", 20);
         //创建一个通用的GenericBeanDefinition
         GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
         //设置beanClass为MyCustomizationBean1
