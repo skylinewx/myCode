@@ -1,14 +1,14 @@
 package com.example.nio;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
+import java.nio.channels.*;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,7 +18,9 @@ import java.util.Set;
  */
 public class NioServer extends Thread {
 
+    private static final Logger logger = LoggerFactory.getLogger(NioServer.class);
     private Selector selector;
+    private Map<Channel, ChannelHandler> channelHandlerMap;
 
     public static void main(String[] args) {
         NioServer server = new NioServer();
@@ -30,11 +32,7 @@ public class NioServer extends Thread {
     public void run() {
         //开启一个channel
         init();
-        try {
-            doListen();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        doListen();
     }
 
     private void init() {
@@ -47,21 +45,30 @@ public class NioServer extends Thread {
             //开启一个selector
             selector = Selector.open();
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+            channelHandlerMap = new HashMap<>();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void doListen() throws IOException {
+    public void doListen() {
         while (true) {
             //阻塞式等待
-            int select = selector.select();
+            try {
+                int select = selector.select();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Set<SelectionKey> selectionKeys = selector.selectedKeys();
             Iterator<SelectionKey> iterator = selectionKeys.iterator();
             while (iterator.hasNext()) {
                 SelectionKey selectionKey = iterator.next();
                 iterator.remove();
-                handleKey(selectionKey);
+                try {
+                    handleKey(selectionKey);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -81,55 +88,31 @@ public class NioServer extends Thread {
         }
     }
 
-    private void handleWritable(SelectionKey selectionKey) throws IOException {
-        System.out.println("isWritable");
+    private void handleWritable(SelectionKey selectionKey) {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(512);
-        Object attachment = selectionKey.attachment();
-        String message = "hello,i'm " + getName() + " " + attachment;
-        byteBuffer.put(message.getBytes());
-        byteBuffer.flip();
-        channel.write(byteBuffer);
-        channel.register(selector, SelectionKey.OP_READ);
+        logger.info("writable [{}] ", channel);
+        channelHandlerMap.get(channel).doChannelWritable();
+
     }
 
     private void handleReadable(SelectionKey selectionKey) throws IOException {
-        System.out.println("isReadable");
         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-        ByteBuffer readBuffer = ByteBuffer.allocateDirect(16);
-        int read;
-        StringBuilder receiveData = new StringBuilder();
-        //将所有可读的数据一次性读完，其实这里不写while也可以，只是会进来两次
-        while ((read = socketChannel.read(readBuffer)) > 0) {
-            readBuffer.flip();
-            //使用GBK是因为我本地是使用telnet测试的
-//                receiveData = receiveData + Charset.forName("GBK").decode(readBuffer);
-            receiveData.append(StandardCharsets.UTF_8.decode(readBuffer));
-            readBuffer.clear();
-        }
-        System.out.println("receiveData:" + receiveData);
-        selectionKey.attach(receiveData);
-        if (read < 0) {
+        logger.info("readable [{}] ", socketChannel);
+        boolean readSuccess = channelHandlerMap.get(socketChannel).doChannelRead();
+        if (!readSuccess) {
             //资源关闭，当telnet执行q命令时触发
             selectionKey.cancel();
             socketChannel.close();
-        } else {
-            socketChannel.register(selector, SelectionKey.OP_WRITE);
         }
     }
 
     private void handleAcceptable(SelectionKey selectionKey) throws IOException {
-        System.out.println("isAcceptable");
         //获取到新连接的channel
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
         SocketChannel socketChannel = serverSocketChannel.accept();
-        //新的channel也设置成非阻塞的
-        socketChannel.configureBlocking(false);
-        socketChannel.register(selector, SelectionKey.OP_READ);
-        //1kb=1024b=1024byte
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
-        byteBuffer.put("new channel!".getBytes());
-        byteBuffer.flip();
-        socketChannel.write(byteBuffer);
+        ServerChannelHandler serverChannelHandler = new ServerChannelHandler(socketChannel, selector);
+        //注册一个新的channelHandler
+        channelHandlerMap.put(socketChannel, serverChannelHandler);
+        logger.info("new acceptable channel");
     }
 }
