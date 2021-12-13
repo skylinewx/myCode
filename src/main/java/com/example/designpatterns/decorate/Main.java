@@ -17,17 +17,23 @@ public class Main {
     }
 
     private static MaterialAble createHotGaoLego() {
-        MaterialAble water = new Water(null);
-        MaterialAble chocolate = new Chocolate(water);
-        MaterialAble gaoLego = new Milk(chocolate);
+        //首先，来一杯水
+        MaterialAble gaoLego = new Water(null);
+        //然后放点巧克力
+        gaoLego = new Chocolate(gaoLego);
+        //再来点牛奶
+        gaoLego = new Milk(gaoLego);
         return gaoLego;
     }
 
     private static MaterialAble createMocha() {
-        MaterialAble water = new Water(null);
-        MaterialAble coffee = new Coffee(water);
-        MaterialAble coffee2 = new Coffee(coffee);
-        MaterialAble mocha = new Chocolate(coffee2);
+        //首先，来一杯水
+        MaterialAble mocha = new Water(null);
+        //加入2份咖啡
+        mocha = new Coffee(mocha);
+        mocha = new Coffee(mocha);
+        //再放入巧克力
+        mocha = new Chocolate(mocha);
         return mocha;
     }
 }

@@ -7,10 +7,8 @@ public class Main {
         Bus bus = new Bus(Direction.EW, trafficLights);
         Sedan sedan = new Sedan(Direction.SN, trafficLights);
         Truck truck = new Truck(Direction.EW, trafficLights);
-
         bus.go();
         sedan.go();
         truck.go();
-
     }
 }

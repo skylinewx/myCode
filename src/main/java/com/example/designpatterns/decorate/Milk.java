@@ -13,12 +13,12 @@ public class Milk extends MaterialAble {
     }
 
     @Override
-    protected String name() {
-        return "牛奶";
+    public String getMaterialList() {
+        return materialAble == null ? "牛奶" : materialAble.getMaterialList() + "," + "牛奶";
     }
 
     @Override
-    protected double cost() {
-        return 1.5;
+    public double calcCost() {
+        return materialAble == null ? 1.5 : materialAble.calcCost() + 1.5;
     }
 }

@@ -13,12 +13,12 @@ public class Water extends MaterialAble {
     }
 
     @Override
-    protected String name() {
-        return "水";
+    public String getMaterialList() {
+        return materialAble == null ? "水" : materialAble.getMaterialList() + "," + "水";
     }
 
     @Override
-    protected double cost() {
-        return 0.2;
+    public double calcCost() {
+        return materialAble == null ? 0.2 : materialAble.calcCost() + 0.2;
     }
 }

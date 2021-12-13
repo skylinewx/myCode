@@ -6,41 +6,23 @@ package com.example.designpatterns.decorate;
  **/
 public abstract class MaterialAble {
 
-    private final MaterialAble oriMaterial;
+    final MaterialAble materialAble;
 
-    public MaterialAble(MaterialAble oriMaterial) {
-        this.oriMaterial = oriMaterial;
+    public MaterialAble(MaterialAble materialAble) {
+        this.materialAble = materialAble;
     }
 
     /**
-     * 计算价格
+     * 材料列表
      *
      * @return
      */
-    public final double calcCost() {
-        return oriMaterial == null ? cost() : oriMaterial.calcCost() + cost();
-    }
+    public abstract String getMaterialList();
 
     /**
-     * 获取材料列表
+     * 计算费用
      *
      * @return
      */
-    public final String getMaterialList() {
-        return oriMaterial == null ? name() : oriMaterial.getMaterialList() + "," + name();
-    }
-
-    /**
-     * 名称
-     *
-     * @return
-     */
-    protected abstract String name();
-
-    /**
-     * 费用
-     *
-     * @return
-     */
-    protected abstract double cost();
+    public abstract double calcCost();
 }

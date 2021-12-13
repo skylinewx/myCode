@@ -13,12 +13,12 @@ public class Coffee extends MaterialAble {
     }
 
     @Override
-    protected String name() {
-        return "咖啡";
+    public String getMaterialList() {
+        return materialAble == null ? "咖啡" : materialAble.getMaterialList() + "," + "咖啡";
     }
 
     @Override
-    protected double cost() {
-        return 1.1;
+    public double calcCost() {
+        return materialAble == null ? 1.1 : materialAble.calcCost() + 1.1;
     }
 }

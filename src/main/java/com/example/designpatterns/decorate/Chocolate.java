@@ -8,17 +8,17 @@ package com.example.designpatterns.decorate;
  **/
 public class Chocolate extends MaterialAble {
 
-    public Chocolate(MaterialAble oriMaterial) {
-        super(oriMaterial);
+    public Chocolate(MaterialAble materialAble) {
+        super(materialAble);
     }
 
     @Override
-    protected String name() {
-        return "巧克力";
+    public String getMaterialList() {
+        return materialAble == null ? "巧克力" : materialAble.getMaterialList() + "," + "巧克力";
     }
 
     @Override
-    protected double cost() {
-        return 1.3;
+    public double calcCost() {
+        return materialAble == null ? 1.3 : materialAble.calcCost() + 1.3;
     }
 }
