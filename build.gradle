@@ -33,12 +33,11 @@ dependencies {
     implementation 'com.sun.mail:javax.mail:1.6.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
-    // https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-generator-annprocess
-    testImplementation group: 'org.openjdk.jmh', name: 'jmh-generator-annprocess', version: '1.33'
-    testAnnotationProcessor group: 'org.openjdk.jmh', name: 'jmh-generator-annprocess', version: '1.33'
-// https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-core
-    implementation group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.33'
-    testAnnotationProcessor group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.33'
+
+    //jmh
+    testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.33'
+    testImplementation 'org.openjdk.jmh:jmh-core:1.33'
+    testAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.33'
 
 //    annotationProcessor "org.springframework:spring-context-indexer"
 }

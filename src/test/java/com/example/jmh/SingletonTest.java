@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(time = 1, iterations = 5)
-@Measurement(iterations = 5)
+@Measurement(time = 1, iterations = 5)
 @Threads(4)
 @Fork(1)
 public class SingletonTest {
