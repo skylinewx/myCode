@@ -245,7 +245,155 @@ RandomTest.threadLocalRandom        avgt    5    4.322 ±  0.374  ns/op
 
 从结果上看`ThreadLocalRandom.current().nextInt()`完胜，而且效率差别非常大。同时我们也没必要自己搞ThreadLocal来封装Random。因为JDK提供的`ThreadLocalRandom.current()`就已经是天花板了。
 
-##
+## 二、写热点
+
+```java
+@BenchmarkMode({Mode.AverageTime})
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(time = 1, iterations = 3)
+@Measurement(time = 1, iterations = 5)
+@Fork(1)
+@Threads(10)
+@State(value = Scope.Benchmark)
+public class HotWriteTest {
+    private final LongAdder longAdder = new LongAdder();
+    private final AtomicLong atomicLong = new AtomicLong();
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(HotWriteTest.class.getSimpleName())
+                .result("HotWriteTest_result.json")
+                .resultFormat(ResultFormatType.JSON).build();
+        new Runner(opt).run();
+    }
+
+    @Benchmark
+    public void longAdder() {
+        longAdder.increment();
+    }
+
+    @Benchmark
+    public void atomicLong() {
+        atomicLong.incrementAndGet();
+    }
+}
+
+```
+
+## 三、同步队列性能测试+SpringBoot集成
+
+SpringBoot工程如下：
+
+```java
+public interface IQueue {
+    void put(Object o) throws InterruptedException;
+    Object take() throws InterruptedException;
+}
+@Component("arrayQueue")
+public class ArrayQueue implements IQueue {
+    private static final ArrayBlockingQueue<Object> QUEUE = new ArrayBlockingQueue<>(100000);
+
+    @Override
+    public void put(Object o) throws InterruptedException {
+        QUEUE.put(o);
+    }
+
+    @Override
+    public Object take() throws InterruptedException {
+        return QUEUE.take();
+    }
+}
+@Component("linkedQueue")
+public class LinkedQueue implements IQueue {
+    private static final LinkedBlockingQueue<Object> QUEUE = new LinkedBlockingQueue<>(100000);
+
+    @Override
+    public void put(Object o) throws InterruptedException {
+        QUEUE.put(o);
+    }
+
+    @Override
+    public Object take() throws InterruptedException {
+        return QUEUE.take();
+    }
+}
+@SpringBootApplication(scanBasePackages = "com.example.jmh")
+public class SpringBootApp {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(SpringBootApp.class, args);
+        IQueue arrayQueue = context.getBean("arrayQueue", IQueue.class);
+        IQueue linkedQueue = context.getBean("linkedQueue", IQueue.class);
+    }
+}
+```
+
+测试代码如下：
+
+```java
+@BenchmarkMode({Mode.AverageTime})
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(time = 1, iterations = 2)
+@Measurement(time = 1, iterations = 3)
+@Fork(1)
+@State(Scope.Group)
+public class SpringBootTest {
+
+    private ConfigurableApplicationContext applicationContext;
+    private IQueue arrayQueue;
+    private IQueue linkedQueue;
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(SpringBootTest.class.getSimpleName())
+                .result("SpringBootTest.json")
+                .resultFormat(ResultFormatType.JSON).build();
+        new Runner(opt).run();
+    }
+
+    @Setup
+    public void init() {
+        applicationContext = SpringApplication.run(SpringBootApp.class);
+        arrayQueue = applicationContext.getBean("arrayQueue", IQueue.class);
+        linkedQueue = applicationContext.getBean("linkedQueue", IQueue.class);
+    }
+
+    @TearDown
+    public void down() {
+        applicationContext.close();
+    }
+
+    @Group("arrayQueue")
+    @GroupThreads(8)
+    @Benchmark
+    public void arrayQueuePut() throws InterruptedException {
+        arrayQueue.put(new Object());
+    }
+
+    @Group("arrayQueue")
+    @GroupThreads(10)
+    @Benchmark
+    public Object arrayQueueGet() throws InterruptedException {
+        return arrayQueue.take();
+    }
+
+    @Group("linkedQueue")
+    @GroupThreads(8)
+    @Benchmark
+    public void linkedQueuePut() throws InterruptedException {
+        linkedQueue.put(new Object());
+    }
+
+    @Group("linkedQueue")
+    @GroupThreads(10)
+    @Benchmark
+    public Object linkedQueueGet() throws InterruptedException {
+        return linkedQueue.take();
+    }
+}
+
+```
+
+
 
 # 参考链接
 
@@ -261,8 +409,4 @@ RandomTest.threadLocalRandom        avgt    5    4.322 ±  0.374  ns/op
 
 [JMH 应用指南 | JAVATECH (dunwu.github.io)](https://dunwu.github.io/javatech/test/jmh.html#teardown)
 
-[在java中使用JMH（Java Microbenchmark Harness）做性能测试 - flydean - 博客园 (cnblogs.com)](https://www.cnblogs.com/flydean/p/12680265.html)
-
 [jmh学习笔记-Forking分叉_m0_37607945的博客-CSDN博客](https://blog.csdn.net/m0_37607945/article/details/111563634)
-
-[^1]:[JMH使用说明 - 简书 (jianshu.com)](https://www.jianshu.com/p/5a501cb6403c)
