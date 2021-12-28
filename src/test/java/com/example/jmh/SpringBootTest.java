@@ -44,7 +44,7 @@ public class SpringBootTest {
     }
 
     @Group("arrayQueue")
-    @GroupThreads(8)
+    @GroupThreads(2)
     @Benchmark
     public void arrayQueuePut() throws InterruptedException {
         arrayQueue.put(new Object());
@@ -58,7 +58,7 @@ public class SpringBootTest {
     }
 
     @Group("linkedQueue")
-    @GroupThreads(8)
+    @GroupThreads(2)
     @Benchmark
     public void linkedQueuePut() throws InterruptedException {
         linkedQueue.put(new Object());

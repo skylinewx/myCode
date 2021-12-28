@@ -1,13 +1,17 @@
 # 什么是JMH
 
-JMH，`Java Microbenchmark Harness`，是专门用于代码微基准测试的工具套件[官方demo](http://hg.openjdk.java.net/code-tools/jmh/file/tip/jmh-samples/src/main/java/org/openjdk/jmh/samples/)
+JMH，`Java Microbenchmark Harness`，是专门用于代码微基准测试的工具套件。
+
+[jmh官网](http://openjdk.java.net/projects/code-tools/jmh/)
+
+[官方demo](http://hg.openjdk.java.net/code-tools/jmh/file/tip/jmh-samples/src/main/java/org/openjdk/jmh/samples/)
 
 # 我们为什么需要JMH
 
 大家可能会疑问，我就用这样的方式来测试效率不好吗？
 
 ```java
-long start = System.currentTimeMillis();
+long start=System.currentTimeMillis();
 doxxx();
 Systime.out.println(System.currentTimeMillis()-start);
 ```
@@ -15,9 +19,9 @@ Systime.out.println(System.currentTimeMillis()-start);
 这么说来原因就很多了，比如：
 
 1. 程序预热（线程池是否已经扩容完毕、JIT热点代码）
-2. 多次运行
+2. 程序一般要运行多次才能计算出比较准确的耗时
 3. 前置逻辑中产生的对象导致gc，结果影响当前方法的测试
-4. 多线程
+4. 多线程并行、并发场景下的测试
 
 # gradle依赖
 
@@ -104,19 +108,19 @@ public class StringTest {
 结果：
 
 ```java
-Benchmark               (size)  Mode  Cnt       Score      Error  Units
-StringTest.testAdd          10  avgt    5     127.196 ±    1.965  ns/op
-StringTest.testAdd         100  avgt    5    1904.355 ±   61.848  ns/op
-StringTest.testAdd        1000  avgt    5  196751.625 ± 7122.108  ns/op
-StringTest.testBuffer       10  avgt    5      85.462 ±    2.184  ns/op
-StringTest.testBuffer      100  avgt    5    1039.248 ±   22.582  ns/op
-StringTest.testBuffer     1000  avgt    5   13067.207 ±  197.001  ns/op
-StringTest.testBuilder      10  avgt    5      74.878 ±    3.929  ns/op
-StringTest.testBuilder     100  avgt    5     866.980 ±   23.213  ns/op
-StringTest.testBuilder    1000  avgt    5   12690.059 ±  417.594  ns/op
-StringTest.testConcat       10  avgt    5     300.571 ±    8.185  ns/op
-StringTest.testConcat      100  avgt    5    3596.555 ±   98.105  ns/op
-StringTest.testConcat     1000  avgt    5  205944.290 ± 8248.218  ns/op
+Benchmark(size)Mode Cnt Score Error Units
+        StringTest.testAdd 10avgt 5 127.196 ±    1.965ns/op
+        StringTest.testAdd 100avgt 5 1904.355 ±   61.848ns/op
+        StringTest.testAdd 1000avgt 5 196751.625 ± 7122.108ns/op
+        StringTest.testBuffer 10avgt 5 85.462 ±    2.184ns/op
+        StringTest.testBuffer 100avgt 5 1039.248 ±   22.582ns/op
+        StringTest.testBuffer 1000avgt 5 13067.207 ±  197.001ns/op
+        StringTest.testBuilder 10avgt 5 74.878 ±    3.929ns/op
+        StringTest.testBuilder 100avgt 5 866.980 ±   23.213ns/op
+        StringTest.testBuilder 1000avgt 5 12690.059 ±  417.594ns/op
+        StringTest.testConcat 10avgt 5 300.571 ±    8.185ns/op
+        StringTest.testConcat 100avgt 5 3596.555 ±   98.105ns/op
+        StringTest.testConcat 1000avgt 5 205944.290 ± 8248.218ns/op
 ```
 
 从上面的结果中可以看到，随着拼接次数的增加10->100->1000每个方法的效率都会降低。但是使用StringBuilder进行字符串拼接的效率依旧是最高的，其次是StringBuffer，然后是字符串加法，效率最低的concat。
@@ -135,7 +139,7 @@ StringTest.testConcat     1000  avgt    5  205944.290 ± 8248.218  ns/op
 上面的这些模式并不是只能使用某一个，这些模式是可以被**组合**使用的，比如
 
 ```java
-@BenchmarkMode({Mode.AverageTime,Mode.SampleTime})
+@BenchmarkMode({Mode.AverageTime, Mode.SampleTime})
 ```
 
 ## @State
@@ -167,12 +171,14 @@ StringTest.testConcat     1000  avgt    5  205944.290 ± 8248.218  ns/op
 
 ## @Fork
 
-默认值是`org.openjdk.jmh.runner.Defaults#MEASUREMENT_FORKS`=5，可以手动指定。`@Fork`中设置是多少，那jmh执行测试时就会创建多少个独立的进程来进行测试。但是需要注意的是，不管有多少个进程进行测试，他们都是串行的。当fork为0时，表示不需要进行fork。官方解释是这样的：
+默认值是`org.openjdk.jmh.runner.Defaults#MEASUREMENT_FORKS`=5，可以手动指定。`@Fork`
+中设置是多少，那jmh执行测试时就会创建多少个独立的进程来进行测试。但是需要注意的是，不管有多少个进程进行测试，他们都是串行的。当fork为0时，表示不需要进行fork。官方解释是这样的：
 
->JVMs are notoriously good at profile-guided optimizations. This is bad for benchmarks, because different tests can mix their profiles together, and then render the "uniformly bad" code for every test. Forking (running in a separate process) each test can help to evade this issue.
->JMH will fork the tests by default.
+> JVMs are notoriously good at profile-guided optimizations. This is bad for benchmarks, because different tests can mix their profiles together, and then render the "uniformly bad" code for every test. Forking (running in a separate process) each test can help to evade this issue.
+> JMH will fork the tests by default.
 
-翻译成人话就是说，首先因为JVM存在**profile-guided optimizations**的特性，但是这样的特性是不利于进行基准测试的。因为不同的测试方法会混在一起，最后会导致结果出现偏差。为了避免这样的偏差才有了@Fork的存在。关于这个偏差的问题可以参考官方的这个例子：[code-tools/jmh: 2be2df7dbaf8 jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_12_Forking.java](http://hg.openjdk.java.net/code-tools/jmh/file/2be2df7dbaf8/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_12_Forking.java)
+翻译成人话就是说，首先因为JVM存在**profile-guided optimizations**
+的特性，但是这样的特性是不利于进行基准测试的。因为不同的测试方法会混在一起，最后会导致结果出现偏差。为了避免这样的偏差才有了@Fork的存在。关于这个偏差的问题可以参考官方的这个例子：[code-tools/jmh: 2be2df7dbaf8 jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_12_Forking.java](http://hg.openjdk.java.net/code-tools/jmh/file/2be2df7dbaf8/jmh-samples/src/main/java/org/openjdk/jmh/samples/JMHSample_12_Forking.java)
 
 所以为了避免这样的问题，我们可以设置`@Fork(1)`这样每一个测试的方法都会跑在不同的jvm进程中，也就避免了相互影响。
 
@@ -195,9 +201,11 @@ private int size;
 
 ## 一、Random与ThreadLocalRandom
 
-我们都知道获取随机数可以使用`Random`，同时在官方文档中也强调`Random`虽然是**线程安全**的，但是如果在多线程的情况下，最好还是使用`ThreadLocalRandom`。那么，Random与ThreadLocalRandom在效率上相差多少呢？我们在实际使用过程中该如何选择呢？
+我们都知道获取随机数可以使用`Random`，同时在官方文档中也强调`Random`虽然是**线程安全**的，但是如果在多线程的情况下，最好还是使用`ThreadLocalRandom`
+。那么，Random与ThreadLocalRandom在效率上相差多少呢？我们在实际使用过程中该如何选择呢？
 
 ```java
+
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(time = 1, iterations = 3)
@@ -237,17 +245,19 @@ public class RandomTest {
 看下结果：
 
 ```java
-Benchmark                           Mode  Cnt    Score    Error  Units
-RandomTest.random                   avgt    5  423.784 ± 20.159  ns/op
-RandomTest.randomThreadLocalHolder  avgt    5   11.369 ±  0.509  ns/op
-RandomTest.threadLocalRandom        avgt    5    4.322 ±  0.374  ns/op
+Benchmark Mode Cnt Score Error Units
+RandomTest.random avgt 5 423.784 ± 20.159ns/op
+RandomTest.randomThreadLocalHolder avgt 5 11.369 ±  0.509ns/op
+RandomTest.threadLocalRandom avgt 5 4.322 ±  0.374ns/op
 ```
 
-从结果上看`ThreadLocalRandom.current().nextInt()`完胜，而且效率差别非常大。同时我们也没必要自己搞ThreadLocal来封装Random。因为JDK提供的`ThreadLocalRandom.current()`就已经是天花板了。
+从结果上看`ThreadLocalRandom.current().nextInt()`
+完胜，而且效率差别非常大。同时我们也没必要自己搞ThreadLocal来封装Random。因为JDK提供的`ThreadLocalRandom.current()`就已经是天花板了。
 
 ## 二、写热点
 
 ```java
+
 @BenchmarkMode({Mode.AverageTime})
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @Warmup(time = 1, iterations = 3)
@@ -277,7 +287,14 @@ public class HotWriteTest {
         atomicLong.incrementAndGet();
     }
 }
+```
 
+测试结果：
+
+```java
+Benchmark                Mode  Cnt    Score    Error  Units
+HotWriteTest.atomicLong  avgt    5  210.160 ± 27.965  ns/op
+HotWriteTest.longAdder   avgt    5   14.293 ±  2.339  ns/op
 ```
 
 ## 三、同步队列性能测试+SpringBoot集成
@@ -287,8 +304,10 @@ SpringBoot工程如下：
 ```java
 public interface IQueue {
     void put(Object o) throws InterruptedException;
+
     Object take() throws InterruptedException;
 }
+
 @Component("arrayQueue")
 public class ArrayQueue implements IQueue {
     private static final ArrayBlockingQueue<Object> QUEUE = new ArrayBlockingQueue<>(100000);
@@ -303,6 +322,7 @@ public class ArrayQueue implements IQueue {
         return QUEUE.take();
     }
 }
+
 @Component("linkedQueue")
 public class LinkedQueue implements IQueue {
     private static final LinkedBlockingQueue<Object> QUEUE = new LinkedBlockingQueue<>(100000);
@@ -317,6 +337,7 @@ public class LinkedQueue implements IQueue {
         return QUEUE.take();
     }
 }
+
 @SpringBootApplication(scanBasePackages = "com.example.jmh")
 public class SpringBootApp {
     public static void main(String[] args) {
@@ -363,7 +384,7 @@ public class SpringBootTest {
     }
 
     @Group("arrayQueue")
-    @GroupThreads(8)
+    @GroupThreads(2)
     @Benchmark
     public void arrayQueuePut() throws InterruptedException {
         arrayQueue.put(new Object());
@@ -377,7 +398,7 @@ public class SpringBootTest {
     }
 
     @Group("linkedQueue")
-    @GroupThreads(8)
+    @GroupThreads(2)
     @Benchmark
     public void linkedQueuePut() throws InterruptedException {
         linkedQueue.put(new Object());
@@ -390,10 +411,19 @@ public class SpringBootTest {
         return linkedQueue.take();
     }
 }
-
 ```
 
+测试结果：
 
+```java
+Benchmark                                  Mode  Cnt     Score     Error  Units
+SpringBootTest.arrayQueue                  avgt    3   719.003 ± 139.696  ns/op
+SpringBootTest.arrayQueue:arrayQueueGet    avgt    3   829.722 ± 162.348  ns/op
+SpringBootTest.arrayQueue:arrayQueuePut    avgt    3   165.408 ±  26.638  ns/op
+SpringBootTest.linkedQueue                 avgt    3  1019.508 ±  95.074  ns/op
+SpringBootTest.linkedQueue:linkedQueueGet  avgt    3  1176.427 ± 109.428  ns/op
+SpringBootTest.linkedQueue:linkedQueuePut  avgt    3   234.914 ±  23.304  ns/op
+```
 
 # 参考链接
 
