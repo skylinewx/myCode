@@ -9,6 +9,8 @@ public class SpringBootApp {
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(SpringBootApp.class, args);
         IQueue arrayQueue = context.getBean("arrayQueue", IQueue.class);
+        System.out.println(arrayQueue);
         IQueue linkedQueue = context.getBean("linkedQueue", IQueue.class);
+        System.out.println(linkedQueue);
     }
 }
