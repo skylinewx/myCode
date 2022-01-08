@@ -23,7 +23,22 @@ public class BIOServer {
     private static final Logger logger = LoggerFactory.getLogger(BIOServer.class);
 
     public static void main(String[] args) throws IOException {
-        ThreadPoolExecutor bizThreadPoolExecutor = new ThreadPoolExecutor(3, 3, 0, TimeUnit.SECONDS, new SynchronousQueue<>(),
+        ThreadPoolExecutor bizThreadPoolExecutor = createBizThreadPool();
+        ServerSocket serverSocket = new ServerSocket(8080);
+        while (true) {
+            logger.info("等待新连接");
+            //这里用while(true)来接收请求，只要业务处理线程池还吃得下，就可以一直接收请求
+            //由于是使用线程池处理请求的具体内容，所以就算是连接上了，也不一定能like处理
+            Socket accept = serverSocket.accept();
+            logger.info("获取到连接了{}", accept);
+            bizThreadPoolExecutor.execute(() -> {
+                handleSocket(accept);
+            });
+        }
+    }
+
+    private static ThreadPoolExecutor createBizThreadPool() {
+        return new ThreadPoolExecutor(3, 3, 0, TimeUnit.SECONDS, new SynchronousQueue<>(),
                 new ThreadFactory() {
                     private final AtomicInteger atomicInteger = new AtomicInteger();
 
@@ -44,17 +59,6 @@ public class BIOServer {
                         }
                     }
                 });
-        ServerSocket serverSocket = new ServerSocket(8080);
-        while (true) {
-            logger.info("等待新连接");
-            //这里用while(true)来接收请求，只要业务处理线程池还吃得下，就可以一直接收请求
-            //由于是使用线程池处理请求的具体内容，所以就算是连接上了，也不一定能like处理
-            Socket accept = serverSocket.accept();
-            logger.info("获取到连接了{}", accept);
-            bizThreadPoolExecutor.execute(() -> {
-                handleSocket(accept);
-            });
-        }
     }
 
     private static void handleSocket(Socket socket) {
