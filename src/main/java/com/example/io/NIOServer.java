@@ -10,9 +10,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,7 +28,33 @@ public class NIOServer {
         serverSocketChannel.bind(new InetSocketAddress(8080));
         //设置为非阻塞模式
         serverSocketChannel.configureBlocking(false);
-        List<SocketChannel> socketChannels = new LinkedList<>();
+        ArrayBlockingQueue<SocketChannel> channels = new ArrayBlockingQueue<>(50);
+        Thread socketWatcher = new Thread(() -> {
+            logger.info("socket处理线程启动");
+            while (true) {
+                SocketChannel socket = null;
+                try {
+                    socket = channels.take();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (socket == null) {
+                    continue;
+                }
+                boolean finish = handleSocket(socket);
+                if (!finish) {
+                    try {
+                        channels.put(socket);
+                        logger.info("{}还没有可读的数据，又放回待处理队列了", socket);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }else {
+                    logger.info("{}已处理完毕", socket);
+                }
+            }
+        }, "socketWatcher");
+        socketWatcher.start();
         while (true) {
             logger.info("等待新连接");
             SocketChannel accept = serverSocketChannel.accept();
@@ -43,16 +66,12 @@ public class NIOServer {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                continue;
-            }
-            logger.info("获得新连接，{}", accept);
-            socketChannels.add(accept);
-            Iterator<SocketChannel> iterator = socketChannels.iterator();
-            while (iterator.hasNext()){
-                SocketChannel socketChannel = iterator.next();
-                boolean finish = handleSocket(socketChannel);
-                if (finish) {
-                    iterator.remove();
+            }else {
+                logger.info("获得新连接，{}", accept);
+                try {
+                    channels.put(accept);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -74,7 +93,7 @@ public class NIOServer {
             int read=socketChannel.read(byteBuffer);
             //在没有数据时，不进行下一步处理
             if (read==0 || read==-1) {
-                return finish;
+                return false;
             }
             byteBuffer.flip();
             builder.append(StandardCharsets.UTF_8.decode(byteBuffer));
