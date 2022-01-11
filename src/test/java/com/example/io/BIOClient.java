@@ -61,7 +61,6 @@ public class BIOClient {
         logger.info("开始建立连接");
         long timeMillis = System.currentTimeMillis();
         Socket socket =new Socket("localhost",8080);
-//        socket.connect(new InetSocketAddress(8080), 5000);
         logger.info("连接建立成功，耗时{}毫秒",System.currentTimeMillis()-timeMillis);
         OutputStream outputStream = socket.getOutputStream();
         logger.info("传入计算表达式：{}",exp);
