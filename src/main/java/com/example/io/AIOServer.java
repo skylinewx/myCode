@@ -1,6 +1,5 @@
 package com.example.io;
 
-import com.googlecode.aviator.AviatorEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +20,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author skyline
  */
-public class AIOServer {
+public class AIOServer implements IServer{
     private static final Logger logger = LoggerFactory.getLogger(AIOServer.class);
 
     public static void main(String[] args) throws IOException {
-        AIOServer aioServer = new AIOServer();
-        AsynchronousServerSocketChannel serverSocketChannel = aioServer.init();
-        aioServer.listen(serverSocketChannel);
+        AIOServer server = new AIOServer();
+        server.start(new NullProtocolHandler(), 8080);
+    }
+
+    @Override
+    public void start(BaseProtocolHandler protocolHandler, int port) throws IOException {
+        AsynchronousServerSocketChannel serverSocketChannel = init(port);
+        listen(protocolHandler,serverSocketChannel);
         try {
             TimeUnit.SECONDS.sleep(Integer.MAX_VALUE);
         } catch (InterruptedException e) {
@@ -35,15 +39,15 @@ public class AIOServer {
         }
     }
 
-    private AsynchronousServerSocketChannel init() throws IOException {
+    private AsynchronousServerSocketChannel init(int port) throws IOException {
         ThreadPoolExecutor bizThreadPool = createBizThreadPool();
         AsynchronousChannelGroup channelGroup = AsynchronousChannelGroup.withThreadPool(bizThreadPool);
         AsynchronousServerSocketChannel serverSocketChannel = AsynchronousServerSocketChannel.open(channelGroup);
-        serverSocketChannel.bind(new InetSocketAddress(8080));
+        serverSocketChannel.bind(new InetSocketAddress(port));
         return serverSocketChannel;
     }
 
-    void listen(AsynchronousServerSocketChannel serverSocketChannel) throws IOException {
+    void listen(BaseProtocolHandler protocolHandler, AsynchronousServerSocketChannel serverSocketChannel) throws IOException {
         logger.info("等待新连接");
         serverSocketChannel.accept(this, new CompletionHandler<AsynchronousSocketChannel, AIOServer>() {
             @Override
@@ -59,14 +63,8 @@ public class AIOServer {
                             builder.append(StandardCharsets.UTF_8.decode(byteBuffer));
                             byteBuffer.clear();
                             logger.info("读取到来自客户端的数据[{}]", builder);
-                            Object calcResult;
-                            try {
-                                calcResult = AviatorEvaluator.execute(builder.toString());
-                                logger.info("AviatorEvaluator的计算结果是[{}]", calcResult);
-                            } catch (Exception e) {
-                                calcResult = e.getMessage();
-                            }
-                            byteBuffer.put(calcResult.toString().getBytes(StandardCharsets.UTF_8));
+                            byte[] calcResult = protocolHandler.handleRequest(builder.toString());
+                            byteBuffer.put(calcResult);
                             byteBuffer.flip();
                             channel.write(byteBuffer, channel, new CompletionHandler<Integer, AsynchronousSocketChannel>() {
                                 @Override
@@ -94,7 +92,7 @@ public class AIOServer {
                     });
                 }
                 try {
-                    listen(serverSocketChannel);
+                    listen(protocolHandler, serverSocketChannel);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

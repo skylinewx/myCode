@@ -1,6 +1,5 @@
 package com.example.io;
 
-import com.googlecode.aviator.AviatorEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,12 +17,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 缺点：每个请求都需要使用独立的线程来处理，业务服务吞吐量和线程池大小相关<br/>
  * @author skyline
  */
-public class BIOServer {
+public class BIOServer implements IServer{
     private static final Logger logger = LoggerFactory.getLogger(BIOServer.class);
 
     public static void main(String[] args) throws IOException {
+        BIOServer server = new BIOServer();
+        server.start(new NullProtocolHandler(), 8080);
+    }
+
+    @Override
+    public void start(BaseProtocolHandler protocolHandler, int port) throws IOException {
         ThreadPoolExecutor bizThreadPoolExecutor = createBizThreadPool();
-        ServerSocket serverSocket = new ServerSocket(8080);
+        ServerSocket serverSocket = new ServerSocket(port);
         while (true) {
             logger.info("等待新连接");
             //这里用while(true)来接收请求，只要业务处理线程池还吃得下，就可以一直接收请求
@@ -32,12 +36,12 @@ public class BIOServer {
             Socket accept = serverSocket.accept();
             logger.info("获取到连接了{}", accept);
             bizThreadPoolExecutor.execute(() -> {
-                handleSocket(accept);
+                handleSocket(protocolHandler,accept);
             });
         }
     }
 
-    private static ThreadPoolExecutor createBizThreadPool() {
+    private ThreadPoolExecutor createBizThreadPool() {
         return new ThreadPoolExecutor(3, 3, 0, TimeUnit.SECONDS, new SynchronousQueue<>(),
                 new ThreadFactory() {
                     private final AtomicInteger atomicInteger = new AtomicInteger();
@@ -61,7 +65,7 @@ public class BIOServer {
                 });
     }
 
-    private static void handleSocket(Socket socket) {
+    private void handleSocket(BaseProtocolHandler protocolHandler, Socket socket) {
         logger.info("业务线程处理连接,{}", socket);
         InputStream inputStream = null;
         OutputStream out = null;
@@ -80,14 +84,8 @@ public class BIOServer {
             }
             builder.append(new String(bytes, 0, read));
             logger.info("读取到来自客户端的数据[{}]", builder);
-            Object result;
-            try {
-                result = AviatorEvaluator.execute(builder.toString());
-                logger.info("AviatorEvaluator的计算结果是[{}]", result);
-            } catch (Exception e) {
-                result = e.getMessage();
-            }
-            out.write(result.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] result = protocolHandler.handleRequest(builder.toString());
+            out.write(result);
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();
