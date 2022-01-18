@@ -6,11 +6,11 @@ import java.math.BigInteger;
 /**
  * 减法操作符
  */
-public class Minus extends Operator{
+public class Minus extends Operator {
 
     @Override
-    public String getText() {
-        return "-";
+    public char operator() {
+        return '-';
     }
 
     @Override
@@ -92,5 +92,10 @@ public class Minus extends Operator{
             }
         }
         throw new RuntimeException("not support!");
+    }
+
+    @Override
+    public int priority() {
+        return 0;
     }
 }

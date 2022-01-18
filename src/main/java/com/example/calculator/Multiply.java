@@ -6,11 +6,11 @@ import java.math.BigInteger;
 /**
  * 乘法操作符
  */
-public class Multiply extends Operator{
+public class Multiply extends Operator {
 
     @Override
-    public String getText() {
-        return "*";
+    public char operator() {
+        return '*';
     }
 
     @Override
@@ -92,5 +92,10 @@ public class Multiply extends Operator{
             }
         }
         throw new RuntimeException("not support!");
+    }
+
+    @Override
+    public int priority() {
+        return 1;
     }
 }

@@ -1,5 +1,7 @@
 package com.example.calculator;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,13 +17,12 @@ public class Expression implements Node {
 
     @Override
     public Node parse() {
-        Node operator = getNode('+', '-');
-        if (operator != null) {
-            return operator;
-        }
-        operator = getNode('*', '/');
-        if (operator != null) {
-            return operator;
+        Collection<List<Character>> sortList = Operator.getSortList();
+        for (List<Character> characters : sortList) {
+            Node operator = getNode(characters);
+            if (operator != null) {
+                return operator;
+            }
         }
         if (text.indexOf('(') == -1 || isStartAndEndWidthBrackets(text)) {
             StaticNode staticNode = new StaticNode();
@@ -36,7 +37,7 @@ public class Expression implements Node {
         return functionNode;
     }
 
-    private Node getNode(char opt1, char opt2) {
+    private Node getNode(List<Character> opts) {
         int length = text.length();
         int brackets = 0;
         boolean isDataNode = true;
@@ -51,13 +52,13 @@ public class Expression implements Node {
             if (charAt == ')') {
                 brackets--;
             }
-            if (charAt == opt1 || charAt == opt2) {
+            if (opts.contains(charAt)) {
                 if (brackets == 0) {
                     Expression left = new Expression();
                     left.setText(text.substring(0, i).trim());
                     left.setFunctionMap(functionMap);
                     left.setEnv(env);
-                    Operator operator = Operator.valueOf(String.valueOf(charAt));
+                    Operator operator = Operator.valueOf(charAt);
                     operator.setLeft(left);
                     Expression right = new Expression();
                     right.setText(text.substring(i + 1).trim());

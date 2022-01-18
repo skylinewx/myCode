@@ -6,11 +6,11 @@ import java.math.BigInteger;
 /**
  * 加法操作符节点
  */
-public class Add extends Operator{
+public class Add extends Operator {
 
     @Override
-    public String getText() {
-        return "+";
+    public char operator() {
+        return '+';
     }
 
     @Override
@@ -101,5 +101,10 @@ public class Add extends Operator{
             }
         }
         throw new RuntimeException("not support!");
+    }
+
+    @Override
+    public int priority() {
+        return 0;
     }
 }

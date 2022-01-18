@@ -6,11 +6,11 @@ import java.math.BigInteger;
 /**
  * 除法操作符
  */
-public class Divide extends Operator{
+public class Divide extends Operator {
 
     @Override
-    public String getText() {
-        return "/";
+    public char operator() {
+        return '/';
     }
 
     @Override
@@ -76,7 +76,7 @@ public class Divide extends Operator{
                 throw new RuntimeException("not support!");
             }
             if (rightResult instanceof BigInteger) {
-                return ((BigInteger)leftResult).divide((BigInteger) rightResult);
+                return ((BigInteger) leftResult).divide((BigInteger) rightResult);
             }
         }
         if (leftResult instanceof BigDecimal) {
@@ -92,5 +92,10 @@ public class Divide extends Operator{
             }
         }
         throw new RuntimeException("not support!");
+    }
+
+    @Override
+    public int priority() {
+        return 1;
     }
 }
