@@ -5,9 +5,9 @@ import java.util.Map;
 /**
  * 表达式节点
  */
-public class Expression implements Node{
+public class Expression implements Node {
     Map<String, Object> env;
-    Map<String,IFunction> functionMap;
+    Map<String, IFunction> functionMap;
     private String text;
 
     public Expression() {
@@ -23,7 +23,7 @@ public class Expression implements Node{
         if (operator != null) {
             return operator;
         }
-        if (isStartAndEndWidthBrackets(text)) {
+        if (text.indexOf('(') == -1 || isStartAndEndWidthBrackets(text)) {
             StaticNode staticNode = new StaticNode();
             staticNode.setText(text);
             staticNode.setEnv(env);
@@ -31,8 +31,8 @@ public class Expression implements Node{
         }
         FunctionNode functionNode = new FunctionNode();
         functionNode.setFunctionMap(functionMap);
-        functionNode.setText(text);
         functionNode.setEnv(env);
+        functionNode.setText(text);
         return functionNode;
     }
 
@@ -56,11 +56,13 @@ public class Expression implements Node{
                     Expression left = new Expression();
                     left.setText(text.substring(0, i).trim());
                     left.setFunctionMap(functionMap);
+                    left.setEnv(env);
                     Operator operator = Operator.valueOf(String.valueOf(charAt));
                     operator.setLeft(left);
                     Expression right = new Expression();
                     right.setText(text.substring(i + 1).trim());
                     right.setFunctionMap(functionMap);
+                    right.setEnv(env);
                     operator.setRight(right);
                     operator.parse();
                     return operator;
@@ -88,19 +90,19 @@ public class Expression implements Node{
         this.text = trim;
     }
 
-    private boolean isStartAndEndWidthBrackets(String text){
+    private boolean isStartAndEndWidthBrackets(String text) {
         if (text.charAt(0) == '(') {
             int length = text.length();
-            int brackets=0;
+            int brackets = 0;
             for (int i = 0; i < length; i++) {
                 char charAt = text.charAt(i);
-                if (charAt=='(') {
+                if (charAt == '(') {
                     brackets++;
                 }
-                if (charAt==')'){
+                if (charAt == ')') {
                     brackets--;
-                    if (brackets==0) {
-                        return i==length-1;
+                    if (brackets == 0) {
+                        return i == length - 1;
                     }
                 }
             }

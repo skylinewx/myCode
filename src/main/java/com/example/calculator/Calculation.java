@@ -22,9 +22,14 @@ public class Calculation {
     }
 
     public static Object exec(String exp) {
+        return exec(exp, null);
+    }
+
+    public static Object exec(String exp, Map<String, Object> env) {
         Expression root = new Expression();
         root.setText(exp);
         root.setFunctionMap(FUNCTION_MAP);
+        root.setEnv(env);
         Node parse = root.parse();
         return parse.getValue();
     }
