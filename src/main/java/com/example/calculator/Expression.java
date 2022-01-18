@@ -1,5 +1,7 @@
 package com.example.calculator;
 
+import com.example.designpatterns.visitor.NodeVisitor;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -11,9 +13,6 @@ public class Expression implements Node {
     Map<String, Object> env;
     Map<String, IFunction> functionMap;
     private String text;
-
-    public Expression() {
-    }
 
     @Override
     public Node parse() {
@@ -109,6 +108,11 @@ public class Expression implements Node {
             }
         }
         return false;
+    }
+
+    @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        throw new RuntimeException("not support!");
     }
 
     @Override

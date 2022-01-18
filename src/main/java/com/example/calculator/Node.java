@@ -1,5 +1,7 @@
 package com.example.calculator;
 
+import com.example.designpatterns.visitor.NodeVisitor;
+
 /**
  * 计算节点
  */
@@ -22,4 +24,6 @@ public interface Node {
      * @return
      */
     Node parse();
+
+    void accept(NodeVisitor nodeVisitor);
 }

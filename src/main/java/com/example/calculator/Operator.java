@@ -1,5 +1,7 @@
 package com.example.calculator;
 
+import com.example.designpatterns.visitor.NodeVisitor;
+
 import java.util.*;
 
 /**
@@ -23,8 +25,8 @@ public abstract class Operator implements Node {
 
     private Node left;
     private Node right;
-    private Node leftResult;
-    private Node rightResult;
+    private Node leftNode;
+    private Node rightNode;
 
     public static Operator valueOf(char operator) {
         Class<? extends Operator> clazz = operatorMaps.get(operator);
@@ -45,8 +47,8 @@ public abstract class Operator implements Node {
 
     @Override
     public final Node parse() {
-        leftResult = left.parse();
-        rightResult = right.parse();
+        leftNode = left.parse();
+        rightNode = right.parse();
         return this;
     }
 
@@ -59,16 +61,29 @@ public abstract class Operator implements Node {
     }
 
     final Object getLeftResult() {
-        return leftResult.getValue();
+        return leftNode.getValue();
     }
 
     final Object getRightResult() {
-        return rightResult.getValue();
+        return rightNode.getValue();
+    }
+
+    final public Node getLeftNode() {
+        return leftNode;
+    }
+
+    final public Node getRightNode() {
+        return rightNode;
     }
 
     @Override
     public String getText() {
         return String.valueOf(operator());
+    }
+
+    @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        nodeVisitor.visitOperator(this);
     }
 
     /**

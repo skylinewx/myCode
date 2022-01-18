@@ -34,4 +34,11 @@ public class Calculation {
         return parse.getValue();
     }
 
+    public static Node parse(String exp){
+        Expression root = new Expression();
+        root.setText(exp);
+        root.setFunctionMap(FUNCTION_MAP);
+        return root.parse();
+    }
+
 }

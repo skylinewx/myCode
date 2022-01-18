@@ -1,5 +1,7 @@
 package com.example.calculator;
 
+import com.example.designpatterns.visitor.NodeVisitor;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +61,11 @@ public class FunctionNode extends Expression {
     }
 
     @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        nodeVisitor.visitFunctionNode(this);
+    }
+
+    @Override
     public Object getValue() {
         IFunction iFunction = functionMap.get(funcName);
         int size = params.size();
@@ -67,5 +74,13 @@ public class FunctionNode extends Expression {
             paramVals[i] = params.get(i).getValue();
         }
         return iFunction.exec(paramVals, env);
+    }
+
+    public String getFuncName() {
+        return funcName;
+    }
+
+    public List<Node> getParams() {
+        return params;
     }
 }

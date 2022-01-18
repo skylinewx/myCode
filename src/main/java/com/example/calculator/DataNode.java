@@ -1,5 +1,7 @@
 package com.example.calculator;
 
+import com.example.designpatterns.visitor.NodeVisitor;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -11,6 +13,11 @@ public class DataNode extends Expression{
     @Override
     public String getText() {
         return super.getText();
+    }
+
+    @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        nodeVisitor.visitDataNode(this);
     }
 
     @Override
