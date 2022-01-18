@@ -26,7 +26,7 @@ public class CalculationMain {
         env.put("aa", 3);
         env.put("bb", 9);
         logger.info("exp is {}", exp3);
-        Object exec3 = Calculation.exec(exp3);
+        Object exec3 = Calculation.exec(exp3, env);
         logger.info("my answer is {}", exec3);
 
     }
