@@ -3,22 +3,28 @@ package com.example.calculator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ServiceLoader;
 
+/**
+ * 计算器
+ *
+ * @author skyline
+ */
 public class Calculation {
 
-    static Map<String, IFunction> functionMap;
+    private static final Map<String, IFunction> FUNCTION_MAP = new HashMap<>();
+
     {
-        functionMap = new HashMap<>();
-        Max max = new Max();
-        functionMap.put(max.getName().toUpperCase(Locale.ROOT), max);
-        Plus100 plus100 = new Plus100();
-        functionMap.put(plus100.getName().toUpperCase(Locale.ROOT), plus100);
+        ServiceLoader<IFunction> load = ServiceLoader.load(IFunction.class);
+        for (IFunction iFunction : load) {
+            FUNCTION_MAP.put(iFunction.getName().toUpperCase(Locale.ROOT), iFunction);
+        }
     }
 
     public Object exec(String exp) {
         Expression root = new Expression();
         root.setText(exp);
-        root.setFunctionMap(functionMap);
+        root.setFunctionMap(FUNCTION_MAP);
         Node parse = root.parse();
         return parse.getValue();
     }
