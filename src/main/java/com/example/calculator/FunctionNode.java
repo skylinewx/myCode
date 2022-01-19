@@ -22,7 +22,7 @@ public class FunctionNode extends Expression {
         super.setText(text);
         String txt = getText();
         int index = txt.indexOf('(');
-        funcName = txt.substring(0, index).toUpperCase(Locale.ROOT);
+        funcName = txt.substring(0, index).toUpperCase(Locale.ROOT).trim();
         params = new ArrayList<>();
         String substring = txt.substring(index + 1, txt.length() - 1);
         int length = substring.length();
