@@ -25,9 +25,10 @@ public class PrettyPrintVisitor implements NodeVisitor{
     @Override
     public void visitOperator(Operator operator) {
         Node leftNode = operator.getLeftNode();
+        int currentPriority = operator.priority();
         boolean showBrackets = false;
         if(leftNode instanceof Operator){
-            if (((Operator) leftNode).priority()<operator.priority()) {
+            if (((Operator) leftNode).priority()< currentPriority) {
                 colorLeftBrackets();
                 showBrackets = true;
             }
@@ -40,7 +41,7 @@ public class PrettyPrintVisitor implements NodeVisitor{
         System.out.print(" "+operator.operator()+" ");
         Node rightNode = operator.getRightNode();
         if(rightNode instanceof Operator){
-            if (((Operator) rightNode).priority()<operator.priority()) {
+            if (((Operator) rightNode).priority()<= currentPriority) {
                 colorLeftBrackets();
                 showBrackets = true;
             }
