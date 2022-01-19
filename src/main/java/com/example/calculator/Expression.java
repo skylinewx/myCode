@@ -1,7 +1,5 @@
 package com.example.calculator;
 
-import com.example.designpatterns.visitor.NodeVisitor;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

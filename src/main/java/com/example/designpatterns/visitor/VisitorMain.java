@@ -16,5 +16,9 @@ public class VisitorMain {
         String exp2 = "Max(8,Max(5,4))+plus100(max(3,9))";
         Node parse2 = Calculation.parse(exp2);
         parse2.accept(new PrettyPrintVisitor());
+        System.out.println();
+        String exp3 = "2-(3-4)";
+        Node parse3 = Calculation.parse(exp3);
+        parse3.accept(new PrettyPrintVisitor());
     }
 }

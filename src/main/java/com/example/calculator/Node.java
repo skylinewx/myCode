@@ -1,7 +1,5 @@
 package com.example.calculator;
 
-import com.example.designpatterns.visitor.NodeVisitor;
-
 /**
  * 计算节点
  */

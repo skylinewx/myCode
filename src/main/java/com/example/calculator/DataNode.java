@@ -1,7 +1,5 @@
 package com.example.calculator;
 
-import com.example.designpatterns.visitor.NodeVisitor;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
