@@ -4,6 +4,7 @@ import com.example.calculator.*;
 
 /**
  * 逆波兰式visitor
+ *
  * @author skyline
  */
 public class ReversePolishVisitor implements NodeVisitor {
@@ -27,5 +28,10 @@ public class ReversePolishVisitor implements NodeVisitor {
     @Override
     public void visitFunctionNode(FunctionNode functionNode) {
         System.out.print(functionNode.getText());
+    }
+
+    @Override
+    public void visitNegativeNode(NegativeNode negativeNode) {
+
     }
 }

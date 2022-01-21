@@ -4,22 +4,23 @@ import com.example.calculator.*;
 
 /**
  * 格式化打印
+ *
  * @author skyline
  */
-public class PrettyPrintVisitor implements NodeVisitor{
+public class PrettyPrintVisitor implements NodeVisitor {
 
-    private static final int[] COLORS = new int[]{31,32,33,34,35};
+    private static final int[] COLORS = new int[]{31, 32, 33, 34, 35};
 
-    private int index=0;
+    private int index = 0;
 
-    private void colorLeftBrackets(){
-        System.out.print((char)27+"["+ COLORS[index%5]+"m("+(char) 27+"[0m");
+    private void colorLeftBrackets() {
+        System.out.print((char) 27 + "[" + COLORS[index % 5] + "m(" + (char) 27 + "[0m");
         index++;
     }
 
-    private void colorRightBrackets(){
+    private void colorRightBrackets() {
         index--;
-        System.out.print((char)27+"["+ COLORS[index%5]+"m)"+(char) 27+"[0m");
+        System.out.print((char) 27 + "[" + COLORS[index % 5] + "m)" + (char) 27 + "[0m");
     }
 
     @Override
@@ -27,8 +28,8 @@ public class PrettyPrintVisitor implements NodeVisitor{
         Node leftNode = operator.getLeftNode();
         int currentPriority = operator.priority();
         boolean showBrackets = false;
-        if(leftNode instanceof Operator){
-            if (((Operator) leftNode).priority()< currentPriority) {
+        if (leftNode instanceof Operator) {
+            if (((Operator) leftNode).priority() < operator.priority()) {
                 colorLeftBrackets();
                 showBrackets = true;
             }
@@ -38,10 +39,10 @@ public class PrettyPrintVisitor implements NodeVisitor{
             colorRightBrackets();
             showBrackets = false;
         }
-        System.out.print(" "+operator.operator()+" ");
+        System.out.print(" " + operator.operator() + " ");
         Node rightNode = operator.getRightNode();
-        if(rightNode instanceof Operator){
-            if (((Operator) rightNode).priority()<= currentPriority) {
+        if (rightNode instanceof Operator) {
+            if (((Operator) rightNode).priority() < operator.priority()) {
                 colorLeftBrackets();
                 showBrackets = true;
             }
@@ -68,10 +69,15 @@ public class PrettyPrintVisitor implements NodeVisitor{
         colorLeftBrackets();
         for (int i = 0; i < functionNode.getParams().size(); i++) {
             functionNode.getParams().get(i).accept(this);
-           if(i<functionNode.getParams().size()-1){
-               System.out.print(",");
-           }
+            if (i < functionNode.getParams().size() - 1) {
+                System.out.print(",");
+            }
         }
         colorRightBrackets();
+    }
+
+    @Override
+    public void visitNegativeNode(NegativeNode negativeNode) {
+        System.out.print(negativeNode.getText());
     }
 }

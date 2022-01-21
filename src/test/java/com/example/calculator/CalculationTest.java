@@ -56,6 +56,20 @@ public class CalculationTest {
         Assert.assertEquals(7, exe);
     }
 
+    @Test
+    public void test6() {
+        String exp = "-1*2";
+        Object exe = exe(exp, null);
+        Assert.assertEquals(-2, exe);
+    }
+
+    @Test
+    public void test7() {
+        String exp = "-1+2*(-5)-8";
+        Object exe = exe(exp, null);
+        Assert.assertEquals(-19, exe);
+    }
+
     private Object exe(String exp, Map<String, Object> env) {
         logger.info("exp is {}", exp);
         if (env != null) {

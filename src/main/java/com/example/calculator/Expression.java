@@ -38,9 +38,9 @@ public class Expression implements Node {
         int length = text.length();
         int brackets = 0;
         boolean isDataNode = true;
-        int i = length-1;
+        int i = length - 1;
         try {
-            for (; i >=0; i--) {
+            for (; i >= 0; i--) {
                 char charAt = text.charAt(i);
                 if (isDataNode && (charAt > '9' || charAt < '0')) {
                     isDataNode = false;
@@ -53,24 +53,29 @@ public class Expression implements Node {
                 }
                 if (opts.contains(charAt)) {
                     if (brackets == 0) {
-                        Expression left = new Expression();
-                        left.setText(text.substring(0, i).trim());
-                        left.setFunctionMap(functionMap);
-                        left.setEnv(env);
-                        Operator operator = Operator.valueOf(charAt);
-                        operator.setLeft(left);
+                        String leftExp = text.substring(0, i).trim();
                         Expression right = new Expression();
                         right.setText(text.substring(i + 1).trim());
                         right.setFunctionMap(functionMap);
                         right.setEnv(env);
-                        operator.setRight(right);
-                        operator.parse();
-                        return operator;
+                        if ("".equals(leftExp) && charAt == '-') {
+                            NegativeNode negativeNode = new NegativeNode(right);
+                            return negativeNode.parse();
+                        } else {
+                            Expression left = new Expression();
+                            left.setText(leftExp);
+                            left.setFunctionMap(functionMap);
+                            left.setEnv(env);
+                            Operator operator = Operator.valueOf(charAt);
+                            operator.setLeft(left);
+                            operator.setRight(right);
+                            return operator.parse();
+                        }
                     }
                 }
             }
-        }catch (Exception e){
-            throw new RuntimeException("在index=["+(i+1)+"]处发现语法异常！");
+        } catch (Exception e) {
+            throw new RuntimeException("在index=[" + (i + 1) + "]处发现语法异常！");
         }
 
         if (length > 0 && isDataNode) {
