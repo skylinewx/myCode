@@ -50,6 +50,10 @@ public class NegativeNode implements Node {
         return this;
     }
 
+    public Node getDelegat() {
+        return delegat;
+    }
+
     @Override
     public void accept(NodeVisitor nodeVisitor) {
         nodeVisitor.visitNegativeNode(this);

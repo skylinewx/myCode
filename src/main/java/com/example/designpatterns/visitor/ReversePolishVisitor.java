@@ -32,6 +32,8 @@ public class ReversePolishVisitor implements NodeVisitor {
 
     @Override
     public void visitNegativeNode(NegativeNode negativeNode) {
-
+        System.out.print("0");
+        negativeNode.getDelegat().accept(this);
+        System.out.print(negativeNode.getText());
     }
 }
