@@ -41,6 +41,7 @@ dependencies {
 
 //    annotationProcessor "org.springframework:spring-context-indexer"
 
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
     implementation 'com.googlecode.aviator:aviator:5.3.0'
 }
 
