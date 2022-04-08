@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.6'
+    id 'org.springframework.boot' version '2.6.6'
 }
 
 apply plugin: 'org.springframework.boot'
@@ -23,24 +23,25 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-amqp
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // https://mvnrepository.com/artifact/org.redisson/redisson
+    implementation 'org.redisson:redisson:3.17.0'
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.27'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     // https://mvnrepository.com/artifact/org.json/json
     implementation group: 'org.json', name: 'json', version: '20210307'
 
-//    implementation 'cglib:cglib:3.3.0'
     //邮件
     implementation 'com.sun.mail:javax.mail:1.6.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
 
     //jmh
-//    testImplementation 'org.openjdk.jmh:jmh-generator-annprocess:1.33'
     testImplementation 'org.openjdk.jmh:jmh-core:1.33'
     testAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.33'
 
 //    annotationProcessor "org.springframework:spring-context-indexer"
-
     implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
     implementation 'com.googlecode.aviator:aviator:5.3.0'
 }
