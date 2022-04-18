@@ -34,7 +34,9 @@ dependencies {
 
     //邮件
     implementation 'com.sun.mail:javax.mail:1.6.2'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation ('org.springframework.boot:spring-boot-starter-test'){
+        exclude group:'com.vaadin.external.google',module:'android-json'
+    }
     testImplementation 'junit:junit:4.12'
 
     //jmh
