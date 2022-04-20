@@ -10,11 +10,8 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import javax.sql.DataSource;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -24,8 +21,6 @@ public abstract class MyCacheService<TFace, KeyHolder> implements CacheGroup, Be
 
     private final ConcurrentHashMap<KeyHolder, TFace> cacheMap = new ConcurrentHashMap<>();
 
-    @Autowired
-    private DataSource dataSource;
     @Autowired
     private IMessageSender messageSender;
     @Autowired
@@ -133,7 +128,6 @@ public abstract class MyCacheService<TFace, KeyHolder> implements CacheGroup, Be
             //先写数据库
             doSave(obj);
             KeyHolder keyHolder = getKeyHolderByObj(obj);
-            ConnectionHolder conHolder = (ConnectionHolder) TransactionSynchronizationManager.getResource(dataSource);
             //缓存失效
             cacheMap.remove(keyHolder);
             transactionCommitHandler.afterCommit(() -> {
