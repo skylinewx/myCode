@@ -14,24 +14,25 @@ import org.springframework.stereotype.Component;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class CacheSyncMessage {
     private String cacheGroup;
-    private String key;
+    private String keyStr;
     @Autowired
     private ObjectMapper objectMapper;
+    private Class<?> keyClass;
 
     public void setCacheGroup(String cacheGroup) {
         this.cacheGroup = cacheGroup;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setKeyStr(String keyStr) {
+        this.keyStr = keyStr;
     }
 
     public String getCacheGroup() {
         return cacheGroup;
     }
 
-    public String getKey() {
-        return key;
+    public String getKeyStr() {
+        return keyStr;
     }
 
     @Override
@@ -41,5 +42,13 @@ public class CacheSyncMessage {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void setKeyClass(Class<?> keyClass) {
+        this.keyClass = keyClass;
+    }
+
+    public Class<?> getKeyClass() {
+        return keyClass;
     }
 }

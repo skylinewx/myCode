@@ -1,7 +1,8 @@
 package com.example.cache2.listener.redis;
 
 import com.example.cache2.domain.CacheSyncMessage;
-import com.example.cache2.domain.MyCache;
+import com.example.cache2.service.MyCacheService;
+import com.example.cache2.service.MyListableCacheService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class RedisMessageListener implements MessageListener, ApplicationContext
         String messageStr = new String(body, StandardCharsets.UTF_8);
         byte[] channel = message.getChannel();
         String channelStr = new String(channel, StandardCharsets.UTF_8);
-        logger.info("getMessage [{}] from channel [{}]", messageStr,channelStr);
+        logger.info("getMessage [{}] from channel [{}]", messageStr, channelStr);
         CacheSyncMessage cacheSyncMessage;
         try {
             cacheSyncMessage = objectMapper.readValue(messageStr, CacheSyncMessage.class);
@@ -38,9 +39,19 @@ public class RedisMessageListener implements MessageListener, ApplicationContext
             throw new RuntimeException(e);
         }
         String cacheGroup = cacheSyncMessage.getCacheGroup();
-        String key = cacheSyncMessage.getKey();
-        MyCache<?,?> myCache = applicationContext.getBean(cacheGroup, MyCache.class);
-        myCache.removeNoSync(key);
+        String keyStr = cacheSyncMessage.getKeyStr();
+        Object keyHolder;
+        try {
+            keyHolder = objectMapper.readValue(keyStr, cacheSyncMessage.getKeyClass());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        MyCacheService<?, ?> myCache = applicationContext.getBean(cacheGroup, MyCacheService.class);
+        if (myCache instanceof MyListableCacheService) {
+            ((MyListableCacheService<?, ?>) myCache).initCache();
+        } else {
+            myCache.getCache().remove(keyHolder);
+        }
     }
 
     @Override

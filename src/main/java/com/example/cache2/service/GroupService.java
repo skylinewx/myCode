@@ -9,13 +9,13 @@ import org.springframework.stereotype.Component;
  * 分布式本地缓存
  */
 @Component
-public class GroupService extends MyCacheService<GroupDO,String> {
+public class GroupService extends MyCacheService<GroupDO, String> {
 
     @Autowired
     private GroupDao groupDao;
 
     @Override
-    protected GroupDO getFromDb(String s) {
+    protected GroupDO doGet(String s) {
         return groupDao.getById(s);
     }
 
