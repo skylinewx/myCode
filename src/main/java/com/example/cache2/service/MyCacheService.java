@@ -1,6 +1,5 @@
 package com.example.cache2.service;
 
-import com.example.cache2.domain.CacheGroup;
 import com.example.cache2.domain.CacheSyncMessage;
 import com.example.cache2.sender.IMessageSender;
 import com.fasterxml.jackson.core.JsonProcessingException;

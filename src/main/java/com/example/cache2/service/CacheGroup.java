@@ -1,4 +1,4 @@
-package com.example.cache2.domain;
+package com.example.cache2.service;
 
 public interface CacheGroup {
     String getCacheGroup();
