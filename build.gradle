@@ -38,8 +38,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation 'de.codecentric:spring-boot-admin-starter-client'
-    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+//    implementation 'de.codecentric:spring-boot-admin-starter-client'
+//    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'org.redisson:redisson:3.17.0'
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.27'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
