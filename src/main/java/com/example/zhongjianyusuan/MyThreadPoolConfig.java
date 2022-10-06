@@ -1,4 +1,4 @@
-package com.example.splittable;
+package com.example.zhongjianyusuan;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

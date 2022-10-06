@@ -1,4 +1,4 @@
-package com.example.splittable;
+package com.example.zhongjianyusuan;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication(scanBasePackages = "com.example.splittable")
+@SpringBootApplication(scanBasePackages = "com.example.zhongjianyusuan")
 @EnableAsync
 public class SpringMain {
 

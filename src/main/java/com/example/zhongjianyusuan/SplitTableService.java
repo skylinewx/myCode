@@ -1,4 +1,4 @@
-package com.example.splittable;
+package com.example.zhongjianyusuan;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
