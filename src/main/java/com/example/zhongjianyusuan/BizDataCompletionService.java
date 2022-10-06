@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,46 +42,92 @@ public class BizDataCompletionService {
         List<HyperModalDO> query = jdbcTemplate.query(sql, new RowMapper<HyperModalDO>() {
             @Override
             public HyperModalDO mapRow(ResultSet rs, int rowNum) throws SQLException {
-                String code = rs.getString(1);
-                String name = rs.getString(2);
-                String periodTypeStr = rs.getString(3);
-                String modelTypeStr = rs.getString(4);
-                String publishStateStr = rs.getString(5);
-                String dimStr = rs.getString(6);
-                String measStr = rs.getString(7);
-                HyperModalDO hyperModalDO = new HyperModalDO();
-                hyperModalDO.setCode(code);
-                hyperModalDO.setName(name);
-                hyperModalDO.setModalType(ModalType.valueOf(modelTypeStr));
-                hyperModalDO.setPublishState(PublishState.valueOf(publishStateStr));
-                try {
-                    List<ModalField> modalFields = objectMapper.readValue(dimStr, new TypeReference<List<ModalField>>() {
-                    });
-                    hyperModalDO.setDimList(modalFields);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    List<ModalField> modalFields = objectMapper.readValue(measStr, new TypeReference<List<ModalField>>() {
-                    });
-                    hyperModalDO.setMeas(modalFields);
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                if (StringUtils.hasText(periodTypeStr)) {
-                    String[] split = periodTypeStr.split(";");
-                    hyperModalDO.setPeriodType(Arrays.asList(split));
-                }
-                return hyperModalDO;
+                return getHyperModalDOByRs(rs);
             }
         });
         logger.info("模型元数据信息查询完毕，耗时：{}", Duration.between(begin, LocalDateTime.now()));
         return query;
     }
 
+    private HyperModalDO getHyperModalDOByRs(ResultSet rs) throws SQLException {
+        String code = rs.getString(1);
+        String name = rs.getString(2);
+        String periodTypeStr = rs.getString(3);
+        String modelTypeStr = rs.getString(4);
+        String publishStateStr = rs.getString(5);
+        String dimStr = rs.getString(6);
+        String measStr = rs.getString(7);
+        HyperModalDO hyperModalDO = new HyperModalDO();
+        hyperModalDO.setCode(code);
+        hyperModalDO.setName(name);
+        hyperModalDO.setModalType(ModalType.valueOf(modelTypeStr));
+        hyperModalDO.setPublishState(PublishState.valueOf(publishStateStr));
+        try {
+            List<ModalField> modalFields = objectMapper.readValue(dimStr, new TypeReference<List<ModalField>>() {
+            });
+            hyperModalDO.setDimList(modalFields);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            List<ModalField> modalFields = objectMapper.readValue(measStr, new TypeReference<List<ModalField>>() {
+            });
+            hyperModalDO.setMeas(modalFields);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        if (StringUtils.hasText(periodTypeStr)) {
+            String[] split = periodTypeStr.split(";");
+            hyperModalDO.setPeriodType(Arrays.asList(split));
+        }
+        return hyperModalDO;
+    }
+
+    @Async("mySplitTableThreadPool")
+    public void doDataCompletionAsyncByModal(String modalName) {
+        if (!StringUtils.hasText(modalName)) {
+            throw new RuntimeException("模型标识为空，执行失败！");
+        }
+        HyperModalDO hyperModalDO = getHyperModalDOByCode(modalName);
+        if (hyperModalDO == null) {
+            logger.info("没有找到标识为{}的预算模型", modalName);
+            return;
+        }
+        doDataCompletionByModalList(Collections.singletonList(hyperModalDO));
+    }
+
+    private HyperModalDO getHyperModalDOByCode(String modalName) {
+        String sql = "select CODE,NAME,PERIODTYPE,MODELTYPE,PUBLISHSTATE,DIMS,MEAS from BUD_MODEL where CODE=?";
+        logger.info("开始查询模型信息，sql:[{}]，参数:[{}]", sql, modalName);
+        return jdbcTemplate.query(sql, ps -> ps.setString(1, modalName), rs -> {
+            if (rs.next()) {
+                return getHyperModalDOByRs(rs);
+            }
+            return null;
+        });
+    }
+
+    public void doDataCompletionAsyncByModals(String modalNames) {
+        String[] modalNameList = modalNames.split(",");
+        List<HyperModalDO> modalList = new ArrayList<>(modalNameList.length);
+        for (String modalName : modalNameList) {
+            HyperModalDO hyperModalDO = getHyperModalDOByCode(modalName);
+            if (hyperModalDO == null) {
+                logger.info("没有找到标识为{}的预算模型", modalName);
+                continue;
+            }
+            modalList.add(hyperModalDO);
+        }
+        doDataCompletionByModalList(modalList);
+    }
+
     @Async("mySplitTableThreadPool")
     public void doDataCompletion() {
         List<HyperModalDO> modalList = getModalList();
+        doDataCompletionByModalList(modalList);
+    }
+
+    private void doDataCompletionByModalList(List<HyperModalDO> modalList) {
         int size = modalList.size();
         HyperModalDO hyperModalDO;
         LocalDateTime start;
@@ -109,12 +156,14 @@ public class BizDataCompletionService {
                     success = doHyperTableDataCompletion(hyperModalDO);
                     break;
             }
-            logger.info("({}/{}){}[{}]的业务数据补全完毕，耗时：[{}]", i + 1, size, name, code, Duration.between(start, LocalDateTime.now()));
             if (!success) {
                 failList.add(hyperModalDO.getCode());
+                logger.info("({}/{}){}[{}]的业务数据补全失败，耗时：[{}]", i + 1, size, name, code, Duration.between(start, LocalDateTime.now()));
+            } else {
+                logger.info("({}/{}){}[{}]的业务数据补全成功，耗时：[{}]", i + 1, size, name, code, Duration.between(start, LocalDateTime.now()));
             }
         }
-        logger.info("数据补全完毕，总耗时：[{}]，失败[{}]个模型，失败详情：{}", Duration.between(begin, LocalDateTime.now()),failList.size(),failList);
+        logger.info("数据补全完毕，总耗时：[{}]，失败[{}]个模型，失败详情：{}", Duration.between(begin, LocalDateTime.now()), failList.size(), failList);
     }
 
     private boolean doHyperTableDataCompletion(HyperModalDO hyperModalDO) {
@@ -130,7 +179,7 @@ public class BizDataCompletionService {
             String tableName = hyperModalDO.getCode() + "_" + pType;
             sql = String.format(sqlStr, tableName, tableName);
             boolean b = exeDataCompletionSql(sql, tableName);
-            success = b&&success;
+            success = b && success;
         }
         return success;
     }
@@ -216,5 +265,4 @@ public class BizDataCompletionService {
         String mergeSql = getMergeSql(hyperModalDO, hyperModalDO.getCode(), false);
         return exeDataCompletionSql(mergeSql, hyperModalDO.getCode());
     }
-
 }
