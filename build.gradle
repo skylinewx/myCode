@@ -9,8 +9,10 @@ apply plugin: 'application'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'com.example'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.2'
 sourceCompatibility = '1.8'
+
+mainClassName = "com.example.splittable.SpringMain"
 
 ext {
     set('aliCloudVersion', "2021.1")
@@ -41,14 +43,15 @@ dependencies {
 //    implementation 'de.codecentric:spring-boot-admin-starter-client'
 //    implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'org.redisson:redisson:3.17.0'
-    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.27'
+    implementation 'mysql:mysql-connector-java:8.0.27'
+    implementation 'com.oracle.database.jdbc:ojdbc8:21.7.0.0'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation group: 'org.json', name: 'json', version: '20210307'
 
     //邮件
     implementation 'com.sun.mail:javax.mail:1.6.2'
-    testImplementation ('org.springframework.boot:spring-boot-starter-test'){
-        exclude group:'com.vaadin.external.google',module:'android-json'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     testImplementation 'junit:junit:4.12'
 
