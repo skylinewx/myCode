@@ -139,7 +139,7 @@ public class DataTransferService {
         queryBuilder.setCharAt(queryBuilder.length() - 1, ' ');
         queryBuilder.append("from ").append(sourceTable);
         StringBuilder insertBuilder = new StringBuilder();
-        insertBuilder.append("insert into %s (");
+        insertBuilder.append("insert  /*+ append */ into %s (");
         for (String column : columnList) {
             insertBuilder.append(column).append(",");
         }
@@ -259,7 +259,8 @@ public class DataTransferService {
                 LocalDateTime begin = LocalDateTime.now();
                 String splitTableName = sourceTable + "_back_" + batchNum;
                 logger.info("开始创建数据临时表{}", splitTableName);
-                jdbcTemplate.execute("create table " + splitTableName + " nologging as select * from " + sourceTable + " where 1=2");
+                jdbcTemplate.execute("create table " + splitTableName + " as select * from " + sourceTable + " where 1=2");
+                jdbcTemplate.execute("alter table " + splitTableName + " nologging");
                 logger.info("数据临时表{}创建成功，耗时:[{}]", splitTableName, Duration.between(begin, LocalDateTime.now()));
                 begin = LocalDateTime.now();
                 logger.info("开始执行第{}次数据插入，本次插入数量[{}]", batchNum, dataList.size());
