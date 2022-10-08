@@ -72,7 +72,7 @@ public class DataTransferService {
 
             List<Map<String, Object>> dataList = new ArrayList<>();
             int count = 0;
-            final int batchSize = 5;
+            final int batchSize = 1000;
             int insertCount = 1;
 
             @Override
@@ -186,9 +186,7 @@ public class DataTransferService {
                     }
                 }, "t1");
                 t1.start();
-                int c = 0;
                 while (rs.next()) {
-                    System.out.println("c++ = " + c++);
                     if (dataList.size() == batchSize) {
                         DataTransferTask transferTask = new DataTransferTask();
                         transferTask.setDataList(dataList);
@@ -248,7 +246,12 @@ public class DataTransferService {
                 begin = LocalDateTime.now();
                 jdbcTemplate.execute(finalSql);
                 logger.info("{}数据合并完毕，耗时:[{}]", tarTable, Duration.between(begin, LocalDateTime.now()));
-                dropBackTables(sourceTable);
+                threadPoolExecutor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        dropBackTables(sourceTable);
+                    }
+                });
                 return null;
             }
 
@@ -256,7 +259,7 @@ public class DataTransferService {
                 LocalDateTime begin = LocalDateTime.now();
                 String splitTableName = sourceTable + "_back_" + batchNum;
                 logger.info("开始创建数据临时表{}", splitTableName);
-                jdbcTemplate.execute("create table " + splitTableName + " as select * from " + sourceTable + " where 1=2");
+                jdbcTemplate.execute("create table " + splitTableName + " nologging as select * from " + sourceTable + " where 1=2");
                 logger.info("数据临时表{}创建成功，耗时:[{}]", splitTableName, Duration.between(begin, LocalDateTime.now()));
                 begin = LocalDateTime.now();
                 logger.info("开始执行第{}次数据插入，本次插入数量[{}]", batchNum, dataList.size());
