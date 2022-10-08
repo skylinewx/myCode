@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,7 @@ public class DataTransferService {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    @Qualifier("mySplitTableThreadPool")
+    @Qualifier("myDataTransferThreadPool")
     private ThreadPoolExecutor threadPoolExecutor;
 
     public void tryTransferData(String sourceTable, String tarTable) {
@@ -42,9 +43,16 @@ public class DataTransferService {
         logger.info("{}的业务数据清空完毕", tarTable);
         logger.info("开始查询源表{}元数据信息", sourceTable);
         LocalDateTime startTime = LocalDateTime.now();
-        String sql = "select COLUMN_NAME from USER_TAB_COLUMNS where TABLE_NAME=?";
-        List<String> columnList = jdbcTemplate.queryForList(sql, String.class, sourceTable);
+        String sql = "select DATA_TYPE as \"dataType\",COLUMN_NAME as \"columnName\" from USER_TAB_COLUMNS where TABLE_NAME=?";
+        List<Map<String, Object>> tableColumnList = jdbcTemplate.queryForList(sql, sourceTable);
         logger.info("{}元数据信息查询完毕，耗时：[{}]", sourceTable, Duration.between(startTime, LocalDateTime.now()));
+        List<String> columnList = new ArrayList<>(tableColumnList.size());
+        List<OracleDataType> dataTypeList = new ArrayList<>(tableColumnList.size());
+        for (Map<String, Object> columnMap : tableColumnList) {
+            columnList.add((String) columnMap.get("columnName"));
+            OracleDataType dataType = OracleDataType.get((String) columnMap.get("dataType"));
+            dataTypeList.add(dataType);
+        }
         StringBuilder queryBuilder = new StringBuilder();
         queryBuilder.append("select ");
         for (String column : columnList) {
@@ -78,16 +86,15 @@ public class DataTransferService {
             @Override
             public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
                 while (rs.next()) {
-                    if (count < batchSize) {
-                        Map<String, Object> dataMap = new HashMap<>();
-                        for (int j = 0; j < size; j++) {
-                            dataMap.put(columnList.get(j), rs.getObject(j + 1));
-                        }
-                        dataList.add(dataMap);
-                        count++;
-                    } else {
+                    if (count == batchSize) {
                         insertData2TarTable();
                     }
+                    Map<String, Object> dataMap = new HashMap<>();
+                    for (int j = 0; j < size; j++) {
+                        dataMap.put(columnList.get(j), rs.getObject(j + 1));
+                    }
+                    dataList.add(dataMap);
+                    count++;
                 }
                 if (count != 0) {
                     insertData2TarTable();
@@ -103,7 +110,9 @@ public class DataTransferService {
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         Map<String, Object> stringObjectMap = dataList.get(i);
                         for (int j = 1; j <= size; j++) {
-                            ps.setObject(j, stringObjectMap.get(columnList.get(j - 1)));
+                            int index = j - 1;
+                            OracleDataType oracleDataType = dataTypeList.get(index);
+                            oracleDataType.doPreparedStatementSet(ps, j, stringObjectMap.get(columnList.get(index)));
                         }
                     }
 
@@ -140,6 +149,7 @@ public class DataTransferService {
         queryBuilder.append("from ").append(sourceTable);
         StringBuilder insertBuilder = new StringBuilder();
         insertBuilder.append("insert  /*+ append */ into %s (");
+//        insertBuilder.append("insert into %s (");
         for (String column : columnList) {
             insertBuilder.append(column).append(",");
         }
@@ -154,16 +164,45 @@ public class DataTransferService {
         int size = columnList.size();
         startTime = LocalDateTime.now();
         logger.info("开始查询{}的业务数据，sql:[{}]", sourceTable, queryBuilder);
-        LinkedBlockingQueue<DataTransferTask> queue = new LinkedBlockingQueue<>();
+        ArrayBlockingQueue<DataTransferTask> queue = new ArrayBlockingQueue<>(10);
+        LinkedBlockingQueue<String> finishTableList = new LinkedBlockingQueue<>();
+        StringBuilder fieldStrBuilder = new StringBuilder();
+        for (String column : columnList) {
+            fieldStrBuilder.append(column).append(",");
+        }
+        String fieldStr = fieldStrBuilder.substring(0, fieldStrBuilder.length() - 1);
         jdbcTemplate.query(queryBuilder.toString(), new ResultSetExtractor<Object>() {
 
             List<Map<String, Object>> dataList = new ArrayList<>();
-            final int batchSize = 1000;
+            final int batchSize = 500;
             final AtomicInteger insertCount = new AtomicInteger(1);
             final AtomicInteger insertFinishCount = new AtomicInteger(1);
 
             @Override
             public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
+                Thread t2 = new Thread(() -> {
+                    while (true) {
+                        String take = null;
+                        try {
+                            take = finishTableList.take();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        StringBuilder sqlBuilder = new StringBuilder();
+                        sqlBuilder.append("insert into ").append(tarTable).append("(");
+                        sqlBuilder.append(fieldStr).append(") ");
+                        sqlBuilder.append("select ").append(fieldStr).append(" from ").append(take);
+                        String finalSql = sqlBuilder.toString();
+                        LocalDateTime now = LocalDateTime.now();
+                        logger.info("开始合并[{}]中的数据到[{}]", take, tarTable);
+                        jdbcTemplate.execute(finalSql);
+                        logger.info("[{}]中的数据合并到[{}]结束，耗时:[{}]", take, tarTable, Duration.between(now, LocalDateTime.now()));
+                        jdbcTemplate.execute("drop table " + take);
+                        logger.info("删除临时表[{}]", take);
+                        insertFinishCount.incrementAndGet();
+                    }
+                }, "t2");
+                t2.start();
                 Thread t1 = new Thread(() -> {
                     while (true) {
                         try {
@@ -176,7 +215,6 @@ public class DataTransferService {
                                 @Override
                                 public void run() {
                                     insertData2TarTable(transferTask.getDataList(), transferTask.getBatchNum());
-                                    insertFinishCount.incrementAndGet();
                                 }
                             });
                         } catch (InterruptedException e) {
@@ -226,26 +264,26 @@ public class DataTransferService {
                     }
                 }
                 logger.info("所有子表创建完毕，共等待[{}]", Duration.between(begin, LocalDateTime.now()));
-                StringBuilder sqlBuilder = new StringBuilder();
-                sqlBuilder.append("insert into ").append(tarTable).append("(");
-                StringBuilder fieldStrBuilder = new StringBuilder();
-                for (String column : columnList) {
-                    fieldStrBuilder.append(column).append(",");
-                }
-                String fieldStr = fieldStrBuilder.substring(0, fieldStrBuilder.length() - 1);
-                sqlBuilder.append(fieldStr).append(") (");
-                for (int i = 1; i < insertCount.get(); i++) {
-                    sqlBuilder.append("select ").append(fieldStr).append(" from ").append(sourceTable).append("_back_").append(i);
-                    if (i != insertCount.get() - 1) {
-                        sqlBuilder.append("\r\n union all \r\n");
-                    }
-                }
-                sqlBuilder.append(")");
-                String finalSql = sqlBuilder.toString();
-                logger.info("开始执行最后的数据合并，sql:[{}]", finalSql);
-                begin = LocalDateTime.now();
-                jdbcTemplate.execute(finalSql);
-                logger.info("{}数据合并完毕，耗时:[{}]", tarTable, Duration.between(begin, LocalDateTime.now()));
+//                StringBuilder sqlBuilder = new StringBuilder();
+//                sqlBuilder.append("insert into ").append(tarTable).append("(");
+//                StringBuilder fieldStrBuilder = new StringBuilder();
+//                for (String column : columnList) {
+//                    fieldStrBuilder.append(column).append(",");
+//                }
+//                String fieldStr = fieldStrBuilder.substring(0, fieldStrBuilder.length() - 1);
+//                sqlBuilder.append(fieldStr).append(") (");
+//                for (int i = 1; i < insertCount.get(); i++) {
+//                    sqlBuilder.append("select ").append(fieldStr).append(" from ").append(sourceTable).append("_back_").append(i);
+//                    if (i != insertCount.get() - 1) {
+//                        sqlBuilder.append("\r\n union all \r\n");
+//                    }
+//                }
+//                sqlBuilder.append(")");
+//                String finalSql = sqlBuilder.toString();
+//                logger.info("开始执行最后的数据合并，sql:[{}]", finalSql);
+//                begin = LocalDateTime.now();
+//                jdbcTemplate.execute(finalSql);
+//                logger.info("{}数据合并完毕，耗时:[{}]", tarTable, Duration.between(begin, LocalDateTime.now()));
                 threadPoolExecutor.submit(new Runnable() {
                     @Override
                     public void run() {
@@ -280,6 +318,11 @@ public class DataTransferService {
                     }
                 });
                 logger.info("第{}次插入完毕，耗时:[{}]", batchNum, Duration.between(begin, LocalDateTime.now()));
+                try {
+                    finishTableList.put(splitTableName);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 

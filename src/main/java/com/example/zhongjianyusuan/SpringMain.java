@@ -28,8 +28,9 @@ public class SpringMain {
             jdbcTemplate.execute(sql);
         }
         logger.info("启动完毕");
-        DataTransferService dataTransferService = applicationContext.getBean(DataTransferService.class);
-        dataTransferService.tryTransferData2("XMJBXX", "XMJBXX_1");
+//        DataTransferService dataTransferService = applicationContext.getBean(DataTransferService.class);
+//        dataTransferService.tryTransferData2("XMSGCZJH", "XMSGCZJH_1");
+//        dataTransferService.tryTransferData2("XMJBXX_WX", "XMJBXX_WX_1");
     }
 
 

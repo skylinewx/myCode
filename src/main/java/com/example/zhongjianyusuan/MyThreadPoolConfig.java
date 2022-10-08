@@ -36,4 +36,28 @@ public class MyThreadPoolConfig {
         });
         return threadPoolExecutor;
     }
+
+    @Bean("myDataTransferThreadPool")
+    public ThreadPoolExecutor myDataTransferThreadPool() {
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(4, 4, 120, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadFactory() {
+
+            private final AtomicInteger atomicInteger = new AtomicInteger(1);
+
+            @Override
+            public Thread newThread(Runnable r) {
+                return new Thread(r, "myDataTransferThreadPool-" + atomicInteger.getAndIncrement());
+            }
+        }, new RejectedExecutionHandler() {
+
+            @Override
+            public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                try {
+                    executor.getQueue().put(r);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        return threadPoolExecutor;
+    }
 }
