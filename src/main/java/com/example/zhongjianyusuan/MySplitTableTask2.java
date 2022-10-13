@@ -67,7 +67,7 @@ public class MySplitTableTask2 extends ForkJoinTask<String> {
             try {
                 jdbcTemplate.execute(sql);
             } catch (Exception e) {
-
+                logger.error(e.getMessage(), e);
             }
 
             logger.info("子表【{}】创建完毕，耗时：【{}】", tableName, Duration.between(start, LocalDateTime.now()));
